@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ book.title }} — LibraryMS{% endblock %}
+{% block page_title %}Book Detail{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <img src="{{ url_for('static', filename='uploads/' + book.cover_image) }}"
+             class="img-fluid rounded shadow"
+             onerror="this.src='https://via.placeholder.com/200x280?text=No+Cover'">
+    </div>
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-body p-4">
+                <h3 class="fw-bold">{{ book.title }}</h3>
+                <p class="text-muted fs-5">by {{ book.author }}</p>
+                <table class="table table-borderless w-auto">
+                    <tr><th>ISBN</th><td>{{ book.isbn }}</td></tr>
+                    <tr><th>Category</th><td>{{ book.category or '—' }}</td></tr>
+                    <tr><th>Status</th><td>
+                        <span class="badge
+                            {% if book.status == 'available' %}bg-success
+                            {% elif book.status == 'borrowed' %}bg-warning text-dark
+                            {% else %}bg-secondary{% endif %}">
+                            {{ book.status|capitalize }}
+                        </span>
+                    </td></tr>
+                    <tr><th>Added</th><td>{{ book.added_at.strftime('%Y-%m-%d') }}</td></tr>
+                </table>
+                <div class="d-flex gap-2 mt-3">
+                    {% if current_user.role == 'member' and book.status == 'available' %}
+                    <form method="POST" action="{{ url_for('loans.borrow_book', book_id=book.id) }}">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-book"></i> Borrow This Book
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if current_user.role in ['admin', 'librarian'] %}
+                    <a href="{{ url_for('books.edit_book', book_id=book.id) }}"
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    {% endif %}
+                    {% if current_user.role == 'admin' %}
+                    <form method="POST" action="{{ url_for('books.delete_book', book_id=book.id) }}"
+                          onsubmit="return confirm('Delete this book?')">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('books.book_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

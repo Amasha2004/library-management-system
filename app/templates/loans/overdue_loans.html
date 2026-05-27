@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Overdue Loans — LibraryMS{% endblock %}
+{% block page_title %}Overdue Loans{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <i class="bi bi-exclamation-triangle"></i> Overdue Loans
+        <span class="badge bg-light text-danger ms-2">{{ loans|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Member</th><th>Email</th><th>Book</th><th>Due Date</th><th>Days Overdue</th><th>Fine (¥)</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr class="table-danger">
+                    <td class="fw-semibold">{{ loan.member.name }}</td>
+                    <td>{{ loan.member.email }}</td>
+                    <td>{{ loan.book.title }}</td>
+                    <td>{{ loan.due_date }}</td>
+                    <td>
+                        <span class="badge bg-danger">
+                            {{ (today - loan.due_date).days }} days
+                        </span>
+                    </td>
+                    <td class="fw-bold text-danger">¥{{ loan.calculate_fine() }}</td>
+                    <td>
+                        <form method="POST"
+                              action="{{ url_for('loans.return_book', loan_id=loan.id) }}"
+                              onsubmit="return confirm('Mark as returned and apply fine?')">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-check"></i> Return
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="bi bi-check-all fs-2"></i>
+                        <p class="mt-2 mb-0">No overdue loans!</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

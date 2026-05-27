@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Loan History — LibraryMS{% endblock %}
+{% block page_title %}Loan History{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <i class="bi bi-clock-history"></i> Complete Loan History
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    {% if current_user.role != 'member' %}<th>Member</th>{% endif %}
+                    <th>Book</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fine</th><th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+                    {% if current_user.role != 'member' %}
+                    <td>{{ loan.member.name }}</td>
+                    {% endif %}
+                    <td>{{ loan.book.title }}</td>
+                    <td>{{ loan.borrow_date }}</td>
+                    <td>{{ loan.due_date }}</td>
+                    <td>{{ loan.return_date or '—' }}</td>
+                    <td>
+                        {% if loan.fine_amount > 0 %}
+                        <span class="text-danger fw-bold">¥{{ loan.fine_amount }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <span class="badge
+                            {% if loan.status == 'returned' %}bg-success
+                            {% elif loan.status == 'overdue' %}bg-danger
+                            {% else %}bg-primary{% endif %}">
+                            {{ loan.status|capitalize }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No loan history found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Library Management System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
+            padding-top: 20px;
+        }
+        .sidebar .nav-link {
+            color: #c5cae9;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 2px 10px;
+            transition: all 0.2s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.15);
+            color: #ffffff;
+        }
+        .sidebar .nav-link i { margin-right: 8px; }
+        .sidebar-brand {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 10px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+        }
+        .main-content { padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .card-header { border-radius: 12px 12px 0 0 !important; }
+        .stat-card { border-left: 4px solid; }
+        .stat-card.blue { border-color: #1a237e; }
+        .stat-card.green { border-color: #2e7d32; }
+        .stat-card.orange { border-color: #e65100; }
+        .stat-card.red { border-color: #c62828; }
+        .badge-available { background-color: #2e7d32; }
+        .badge-borrowed { background-color: #e65100; }
+        .badge-overdue { background-color: #c62828; }
+        .topbar {
+            background: #ffffff;
+            padding: 12px 30px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 0;
+        }
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar -->
+    <div class="sidebar" style="width: 240px; min-width: 240px;">
+        <div class="sidebar-brand">
+            <i class="bi bi-book-half"></i> LibraryMS
+        </div>
+        <ul class="nav flex-column">
+            {% if current_user.role == 'admin' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('members.admin_dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('books.book_list') }}">
+                    <i class="bi bi-journals"></i> Books
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('members.member_list') }}">
+                    <i class="bi bi-people"></i> Members
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('members.pending_members') }}">
+                    <i class="bi bi-person-check"></i> Approvals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.all_loans') }}">
+                    <i class="bi bi-arrow-left-right"></i> Loans
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.overdue_loans') }}">
+                    <i class="bi bi-exclamation-triangle"></i> Overdue
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.fines_list') }}">
+                    <i class="bi bi-cash-coin"></i> Fines
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('reports.reports_home') }}">
+                    <i class="bi bi-bar-chart"></i> Reports
+                </a>
+            </li>
+            {% elif current_user.role == 'librarian' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('books.librarian_dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('books.book_list') }}">
+                    <i class="bi bi-journals"></i> Books
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('books.add_book') }}">
+                    <i class="bi bi-plus-circle"></i> Add Book
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.all_loans') }}">
+                    <i class="bi bi-arrow-left-right"></i> Loans
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.overdue_loans') }}">
+                    <i class="bi bi-exclamation-triangle"></i> Overdue
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.fines_list') }}">
+                    <i class="bi bi-cash-coin"></i> Fines
+                </a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.member_dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('books.book_list') }}">
+                    <i class="bi bi-search"></i> Browse Books
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('loans.loan_history') }}">
+                    <i class="bi bi-clock-history"></i> My History
+                </a>
+            </li>
+            {% endif %}
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 20px;">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('auth.profile') }}">
+                    <i class="bi bi-person-circle"></i> Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Main content -->
+    <div class="flex-grow-1">
+        {% if current_user.is_authenticated %}
+        <div class="topbar d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 text-muted">{% block page_title %}{% endblock %}</h6>
+            <div class="d-flex align-items-center gap-2">
+                <span class="role-badge bg-primary text-white">{{ current_user.role|capitalize }}</span>
+                <span class="text-muted small">{{ current_user.name }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

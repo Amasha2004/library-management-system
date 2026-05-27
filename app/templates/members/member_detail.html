@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Member Detail — LibraryMS{% endblock %}
+{% block page_title %}Member Detail{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-person-circle"></i> Member Info
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless small">
+                    <tr><th>Name</th><td>{{ user.name }}</td></tr>
+                    <tr><th>Email</th><td>{{ user.email }}</td></tr>
+                    <tr><th>Phone</th><td>{{ user.phone or '—' }}</td></tr>
+                    <tr><th>Address</th><td>{{ user.address or '—' }}</td></tr>
+                    <tr><th>Status</th><td>
+                        <span class="badge
+                            {% if user.status == 'active' %}bg-success
+                            {% elif user.status == 'pending' %}bg-warning text-dark
+                            {% else %}bg-danger{% endif %}">
+                            {{ user.status|capitalize }}
+                        </span>
+                    </td></tr>
+                    <tr><th>Joined</th><td>{{ user.created_at.strftime('%Y-%m-%d') }}</td></tr>
+                </table>
+                <a href="{{ url_for('members.member_list') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-clock-history"></i> Borrowing History
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 small">
+                    <thead class="table-light">
+                        <tr><th>Book</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fine</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in loans %}
+                        <tr>
+                            <td>{{ loan.book.title }}</td>
+                            <td>{{ loan.borrow_date }}</td>
+                            <td>{{ loan.due_date }}</td>
+                            <td>{{ loan.return_date or '—' }}</td>
+                            <td>{% if loan.fine_amount > 0 %}¥{{ loan.fine_amount }}{% else %}—{% endif %}</td>
+                            <td>
+                                <span class="badge
+                                    {% if loan.status == 'returned' %}bg-success
+                                    {% elif loan.status == 'borrowed' %}bg-primary
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ loan.status|capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center text-muted py-3">No borrowing history.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

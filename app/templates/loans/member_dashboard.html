@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard — LibraryMS{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card blue p-3">
+            <div class="text-muted small">Books Borrowed</div>
+            <div class="fs-2 fw-bold text-primary">{{ active_loans|length }}</div>
+            <div class="text-muted small">of 5 maximum</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card red p-3">
+            <div class="text-muted small">Overdue Books</div>
+            <div class="fs-2 fw-bold text-danger">{{ overdue|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card green p-3">
+            <div class="text-muted small">Recently Returned</div>
+            <div class="fs-2 fw-bold text-success">{{ loan_history|length }}</div>
+        </div>
+    </div>
+</div>
+
+{% if overdue %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    You have <strong>{{ overdue|length }}</strong> overdue book(s).
+    Fine: ¥0.50 per day per book.
+</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-book"></i> Currently Borrowed</span>
+        <a href="{{ url_for('books.book_list') }}" class="btn btn-sm btn-light">
+            <i class="bi bi-search"></i> Browse Books
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Book Title</th><th>Author</th><th>Borrowed</th><th>Due Date</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for loan in active_loans %}
+                <tr class="{% if loan.due_date < today %}table-danger{% endif %}">
+                    <td class="fw-semibold">{{ loan.book.title }}</td>
+                    <td>{{ loan.book.author }}</td>
+                    <td>{{ loan.borrow_date }}</td>
+                    <td>{{ loan.due_date }}</td>
+                    <td>
+                        {% if loan.due_date < today %}
+                        <span class="badge bg-danger">
+                            Overdue ({{ (today - loan.due_date).days }} days)
+                        </span>
+                        {% elif (loan.due_date - today).days <= 2 %}
+                        <span class="badge bg-warning text-dark">Due Soon</span>
+                        {% else %}
+                        <span class="badge bg-primary">Borrowed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        You have no active loans.
+                        <a href="{{ url_for('books.book_list') }}">Browse books</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <i class="bi bi-clock-history"></i> Recent Return History
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Book Title</th><th>Borrowed</th><th>Returned</th><th>Fine Paid</th></tr>
+            </thead>
+            <tbody>
+                {% for loan in loan_history %}
+                <tr>
+                    <td>{{ loan.book.title }}</td>
+                    <td>{{ loan.borrow_date }}</td>
+                    <td>{{ loan.return_date }}</td>
+                    <td>
+                        {% if loan.fine_amount > 0 %}
+                        <span class="badge {% if loan.fine_paid %}bg-success{% else %}bg-danger{% endif %}">
+                            ¥{{ loan.fine_amount }}
+                            {% if loan.fine_paid %}(Paid){% else %}(Unpaid){% endif %}
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No return history yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Daily Transactions — LibraryMS{% endblock %}
+{% block page_title %}Daily Transactions Report{% endblock %}
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Select Date</label>
+                <input type="date" name="date" class="form-control"
+                       value="{{ report_date }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> View Report
+                </button>
+                <a href="{{ url_for('reports.export_daily', date=report_date) }}"
+                   class="btn btn-outline-success ms-2">
+                    <i class="bi bi-download"></i> Export
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card blue p-3">
+            <div class="text-muted small">Books Borrowed</div>
+            <div class="fs-2 fw-bold text-primary">{{ borrowed|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card green p-3">
+            <div class="text-muted small">Books Returned</div>
+            <div class="fs-2 fw-bold text-success">{{ returned|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card orange p-3">
+            <div class="text-muted small">Total Fines Collected</div>
+            <div class="fs-2 fw-bold text-warning">¥{{ "%.2f"|format(total_fines) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="bi bi-arrow-right-circle"></i> Borrowed on {{ report_date }}
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Member</th><th>Book</th><th>Due Date</th></tr>
+            </thead>
+            <tbody>
+                {% for loan in borrowed %}
+                <tr>
+                    <td>{{ loan.member.name }}</td>
+                    <td>{{ loan.book.title }}</td>
+                    <td>{{ loan.due_date }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted py-3">No borrows on this date.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <i class="bi bi-arrow-left-circle"></i> Returned on {{ report_date }}
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Member</th><th>Book</th><th>Fine</th></tr>
+            </thead>
+            <tbody>
+                {% for loan in returned %}
+                <tr>
+                    <td>{{ loan.member.name }}</td>
+                    <td>{{ loan.book.title }}</td>
+                    <td>
+                        {% if loan.fine_amount > 0 %}
+                        <span class="text-danger fw-bold">¥{{ loan.fine_amount }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted py-3">No returns on this date.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="mt-3">
+    <a href="{{ url_for('reports.reports_home') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Reports
+    </a>
+</div>
+{% endblock %}

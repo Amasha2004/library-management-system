@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card blue p-3">
+            <div class="text-muted small">Total Members</div>
+            <div class="fs-2 fw-bold text-primary">{{ total_members }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card green p-3">
+            <div class="text-muted small">Active Members</div>
+            <div class="fs-2 fw-bold text-success">{{ active }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card orange p-3">
+            <div class="text-muted small">Pending Approval</div>
+            <div class="fs-2 fw-bold text-warning">{{ pending }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card red p-3">
+            <div class="text-muted small">Total Users</div>
+            <div class="fs-2 fw-bold text-danger">{{ total_users }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people"></i> Recent Members</span>
+                <a href="{{ url_for('members.member_list') }}" class="btn btn-sm btn-light">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Name</th><th>Email</th><th>Status</th><th>Joined</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for m in recent_members %}
+                        <tr>
+                            <td>{{ m.name }}</td>
+                            <td>{{ m.email }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if m.status == 'active' %}bg-success
+                                    {% elif m.status == 'pending' %}bg-warning text-dark
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ m.status|capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ m.created_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No members yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-person-check"></i> Quick Actions
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="{{ url_for('members.pending_members') }}" class="btn btn-outline-warning">
+                    <i class="bi bi-person-check"></i> Review Pending ({{ pending }})
+                </a>
+                <a href="{{ url_for('books.add_book') }}" class="btn btn-outline-success">
+                    <i class="bi bi-plus-circle"></i> Add New Book
+                </a>
+                <a href="{{ url_for('loans.overdue_loans') }}" class="btn btn-outline-danger">
+                    <i class="bi bi-exclamation-triangle"></i> View Overdue Loans
+                </a>
+                <a href="{{ url_for('reports.reports_home') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-bar-chart"></i> Generate Reports
+                </a>
+                <a href="{{ url_for('members.add_librarian') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-person-plus"></i> Add Librarian
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

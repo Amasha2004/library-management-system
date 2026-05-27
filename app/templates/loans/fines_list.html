@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Fines — LibraryMS{% endblock %}
+{% block page_title %}Unpaid Fines{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <i class="bi bi-cash-coin"></i> Unpaid Fines
+        <span class="badge bg-dark ms-2">{{ fines|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Member</th><th>Book</th><th>Due Date</th><th>Return Date</th><th>Fine Amount</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for fine in fines %}
+                <tr>
+                    <td class="fw-semibold">{{ fine.loan.member.name }}</td>
+                    <td>{{ fine.loan.book.title }}</td>
+                    <td>{{ fine.loan.due_date }}</td>
+                    <td>{{ fine.loan.return_date }}</td>
+                    <td class="fw-bold text-danger">¥{{ fine.amount }}</td>
+                    <td>
+                        <form method="POST"
+                              action="{{ url_for('loans.pay_fine', fine_id=fine.id) }}"
+                              onsubmit="return confirm('Mark this fine as paid?')">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-check-circle"></i> Mark Paid
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="bi bi-emoji-smile fs-2"></i>
+                        <p class="mt-2 mb-0">No unpaid fines!</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
