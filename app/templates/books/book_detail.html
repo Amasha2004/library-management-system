@@ -2,58 +2,277 @@
 {% block title %}{{ book.title }} — LibraryMS{% endblock %}
 {% block page_title %}Book Detail{% endblock %}
 {% block content %}
-<div class="row">
-    <div class="col-md-3">
-        <img src="{{ url_for('static', filename='uploads/' + book.cover_image) }}"
-             class="img-fluid rounded shadow"
-             onerror="this.src='https://via.placeholder.com/200x280?text=No+Cover'">
-    </div>
-    <div class="col-md-9">
-        <div class="card">
-            <div class="card-body p-4">
-                <h3 class="fw-bold">{{ book.title }}</h3>
-                <p class="text-muted fs-5">by {{ book.author }}</p>
-                <table class="table table-borderless w-auto">
-                    <tr><th>ISBN</th><td>{{ book.isbn }}</td></tr>
-                    <tr><th>Category</th><td>{{ book.category or '—' }}</td></tr>
-                    <tr><th>Status</th><td>
-                        <span class="badge
-                            {% if book.status == 'available' %}bg-success
-                            {% elif book.status == 'borrowed' %}bg-warning text-dark
-                            {% else %}bg-secondary{% endif %}">
-                            {{ book.status|capitalize }}
-                        </span>
-                    </td></tr>
-                    <tr><th>Added</th><td>{{ book.added_at.strftime('%Y-%m-%d') }}</td></tr>
-                </table>
-                <div class="d-flex gap-2 mt-3">
-                    {% if current_user.role == 'member' and book.status == 'available' %}
-                    <form method="POST" action="{{ url_for('loans.borrow_book', book_id=book.id) }}">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-book"></i> Borrow This Book
-                        </button>
-                    </form>
-                    {% endif %}
-                    {% if current_user.role in ['admin', 'librarian'] %}
-                    <a href="{{ url_for('books.edit_book', book_id=book.id) }}"
-                       class="btn btn-outline-primary">
-                        <i class="bi bi-pencil"></i> Edit
-                    </a>
-                    {% endif %}
-                    {% if current_user.role == 'admin' %}
-                    <form method="POST" action="{{ url_for('books.delete_book', book_id=book.id) }}"
-                          onsubmit="return confirm('Delete this book?')">
-                        <button type="submit" class="btn btn-outline-danger">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </form>
-                    {% endif %}
-                    <a href="{{ url_for('books.book_list') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back
-                    </a>
-                </div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+.detail-wrap {
+    max-width:900px; margin:0 auto;
+    animation:fadeUp 0.5s ease both;
+}
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+/* Hero */
+.book-hero {
+    border-radius:20px; overflow:hidden;
+    margin-bottom:24px; position:relative;
+    min-height:260px; display:flex; align-items:flex-end;
+    padding:32px;
+}
+.hero-bg {
+    position:absolute; inset:0;
+    background:linear-gradient(135deg,#1a237e,#283593,#1565c0);
+}
+.hero-cat-fiction      { background:linear-gradient(135deg,#667eea,#764ba2) !important; }
+.hero-cat-technology   { background:linear-gradient(135deg,#0f2027,#203a43,#2c5364) !important; }
+.hero-cat-science      { background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460) !important; }
+.hero-cat-history      { background:linear-gradient(135deg,#8B4513,#A0522D,#CD853F) !important; }
+.hero-cat-philosophy   { background:linear-gradient(135deg,#2c3e50,#3498db) !important; }
+.hero-cat-business     { background:linear-gradient(135deg,#134e5e,#71b280) !important; }
+.hero-cat-dystopian    { background:linear-gradient(135deg,#200122,#6f0000) !important; }
+.hero-cat-scifi        { background:linear-gradient(135deg,#0d0d0d,#1a1a2e,#16213e) !important; }
+
+.hero-overlay {
+    position:absolute; inset:0;
+    background:linear-gradient(to right, rgba(0,0,0,0.6) 0%, transparent 100%);
+}
+.hero-emoji {
+    position:absolute; right:40px; top:50%;
+    transform:translateY(-50%);
+    font-size:100px; opacity:0.2;
+    filter:drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+}
+.hero-content { position:relative; z-index:1; color:#fff; }
+.hero-category {
+    font-size:10px; letter-spacing:3px; text-transform:uppercase;
+    color:rgba(255,255,255,0.6); margin-bottom:10px; font-weight:600;
+}
+.hero-title {
+    font-family:'Playfair Display',serif;
+    font-size:32px; font-weight:700; line-height:1.2;
+    margin-bottom:8px; max-width:500px;
+}
+.hero-author {
+    font-size:15px; color:rgba(255,255,255,0.7); margin-bottom:16px;
+}
+.hero-badges { display:flex; gap:8px; flex-wrap:wrap; }
+.hero-badge {
+    padding:5px 14px; border-radius:20px; font-size:12px; font-weight:600;
+    backdrop-filter:blur(8px);
+}
+.hb-available { background:rgba(16,185,129,0.3); color:#6ee7b7; border:1px solid rgba(16,185,129,0.4); }
+.hb-borrowed  { background:rgba(245,158,11,0.3); color:#fcd34d; border:1px solid rgba(245,158,11,0.4); }
+.hb-isbn      { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.2); }
+
+/* Info cards row */
+.info-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.info-card {
+    background:#fff; border-radius:14px; padding:16px 20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    display:flex; align-items:center; gap:14px;
+    animation:fadeUp 0.5s ease both;
+}
+.info-card:nth-child(1) { animation-delay:0.1s; }
+.info-card:nth-child(2) { animation-delay:0.15s; }
+.info-card:nth-child(3) { animation-delay:0.2s; }
+.info-icon {
+    width:44px; height:44px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;
+}
+.ic-purple { background:#f0f0ff; }
+.ic-green  { background:#f0fdf4; }
+.ic-amber  { background:#fffbeb; }
+.info-label { font-size:11px; color:#aaa; letter-spacing:0.5px; margin-bottom:2px; }
+.info-value { font-size:14px; font-weight:700; color:#1a1a2e; }
+
+/* Description + actions */
+.bottom-row { display:grid; grid-template-columns:1fr 280px; gap:16px; }
+.desc-card {
+    background:#fff; border-radius:14px; padding:24px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    animation:fadeUp 0.5s ease 0.25s both;
+}
+.desc-title {
+    font-family:'Playfair Display',serif;
+    font-size:16px; font-weight:700; color:#1a1a2e; margin-bottom:12px;
+}
+.desc-text { font-size:13px; color:#666; line-height:1.8; }
+.detail-table { width:100%; border-collapse:collapse; margin-top:12px; }
+.detail-table tr td {
+    padding:10px 0; border-bottom:1px solid #f5f5f5;
+    font-size:13px;
+}
+.detail-table tr:last-child td { border-bottom:none; }
+.detail-table td:first-child { color:#aaa; width:120px; font-weight:500; }
+.detail-table td:last-child { color:#333; font-weight:600; }
+
+.actions-card {
+    background:#fff; border-radius:14px; padding:24px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    animation:fadeUp 0.5s ease 0.3s both;
+    display:flex; flex-direction:column; gap:10px;
+}
+.actions-title {
+    font-size:13px; font-weight:700; color:#aaa;
+    letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;
+}
+.btn-action {
+    width:100%; padding:12px 16px; border-radius:10px;
+    font-size:13px; font-weight:600; text-align:center;
+    text-decoration:none; border:none; cursor:pointer;
+    transition:all 0.2s; display:flex; align-items:center;
+    justify-content:center; gap:8px;
+}
+.btn-borrow-main {
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff; box-shadow:0 4px 14px rgba(99,102,241,0.4);
+}
+.btn-borrow-main:hover { opacity:0.9; transform:translateY(-2px); color:#fff; }
+.btn-edit-main {
+    background:#f0f0ff; color:#6366f1; border:1.5px solid #e0e0ff;
+}
+.btn-edit-main:hover { background:#e0e0ff; color:#6366f1; }
+.btn-delete-main {
+    background:#fff0f0; color:#ef4444; border:1.5px solid #fecaca;
+}
+.btn-delete-main:hover { background:#fee2e2; color:#ef4444; }
+.btn-back-main {
+    background:#f5f5f5; color:#666; border:1.5px solid #e0e0e0;
+}
+.btn-back-main:hover { background:#e0e0e0; color:#333; }
+.unavailable-note {
+    text-align:center; padding:12px; background:#fffbeb;
+    border-radius:10px; border:1px solid #fde68a;
+    font-size:13px; color:#92400e;
+}
+</style>
+
+{% set cat_class = {
+    'Fiction': 'hero-cat-fiction',
+    'Technology': 'hero-cat-technology',
+    'Science': 'hero-cat-science',
+    'History': 'hero-cat-history',
+    'Philosophy': 'hero-cat-philosophy',
+    'Business': 'hero-cat-business',
+    'Dystopian': 'hero-cat-dystopian',
+    'Science Fiction': 'hero-cat-scifi',
+}.get(book.category, '') %}
+
+{% set cat_emoji = {
+    'Fiction': '📖',
+    'Technology': '💻',
+    'Science': '🔬',
+    'History': '🏛️',
+    'Philosophy': '🧠',
+    'Business': '📈',
+    'Dystopian': '🌑',
+    'Science Fiction': '🚀',
+}.get(book.category, '📚') %}
+
+<div class="detail-wrap">
+    <!-- Hero -->
+    <div class="book-hero">
+        <div class="hero-bg {{ cat_class }}"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-emoji">{{ cat_emoji }}</div>
+        <div class="hero-content">
+            <div class="hero-category">{{ book.category or 'Uncategorized' }}</div>
+            <div class="hero-title">{{ book.title }}</div>
+            <div class="hero-author">by {{ book.author }}</div>
+            <div class="hero-badges">
+                <span class="hero-badge {% if book.status == 'available' %}hb-available{% else %}hb-borrowed{% endif %}">
+                    {{ book.status|capitalize }}
+                </span>
+                <span class="hero-badge hb-isbn">ISBN: {{ book.isbn }}</span>
             </div>
         </div>
     </div>
+
+    <!-- Info cards -->
+    <div class="info-row">
+        <div class="info-card">
+            <div class="info-icon ic-purple">✍️</div>
+            <div>
+                <div class="info-label">Author</div>
+                <div class="info-value">{{ book.author }}</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon ic-green">📂</div>
+            <div>
+                <div class="info-label">Category</div>
+                <div class="info-value">{{ book.category or '—' }}</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon ic-amber">📅</div>
+            <div>
+                <div class="info-label">Added On</div>
+                <div class="info-value">{{ book.added_at.strftime('%Y-%m-%d') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="bottom-row">
+        <div class="desc-card">
+            <div class="desc-title">Book Details</div>
+            <table class="detail-table">
+                <tr><td>Title</td><td>{{ book.title }}</td></tr>
+                <tr><td>Author</td><td>{{ book.author }}</td></tr>
+                <tr><td>ISBN</td><td>{{ book.isbn }}</td></tr>
+                <tr><td>Category</td><td>{{ book.category or '—' }}</td></tr>
+                <tr><td>Status</td><td>
+                    <span style="color:{% if book.status == 'available' %}#16a34a{% else %}#d97706{% endif %};font-weight:700">
+                        {{ book.status|capitalize }}
+                    </span>
+                </td></tr>
+                <tr><td>Added</td><td>{{ book.added_at.strftime('%B %d, %Y') }}</td></tr>
+            </table>
+        </div>
+
+        <div class="actions-card">
+            <div class="actions-title">Actions</div>
+
+            {% if current_user.role == 'member' %}
+                {% if book.status == 'available' %}
+                <form method="POST" action="{{ url_for('loans.borrow_book', book_id=book.id) }}">
+                    <button type="submit" class="btn-action btn-borrow-main">
+                        📖 Borrow This Book
+                    </button>
+                </form>
+                {% else %}
+                <div class="unavailable-note">
+                    ⚠️ This book is currently {{ book.status }}
+                </div>
+                {% endif %}
+            {% endif %}
+
+            {% if current_user.role in ['admin', 'librarian'] %}
+            <a href="{{ url_for('books.edit_book', book_id=book.id) }}"
+               class="btn-action btn-edit-main">
+                ✏️ Edit Book
+            </a>
+            {% endif %}
+
+            {% if current_user.role == 'admin' %}
+            <form method="POST" action="{{ url_for('books.delete_book', book_id=book.id) }}"
+                  onsubmit="return confirm('Delete this book permanently?')">
+                <button type="submit" class="btn-action btn-delete-main">
+                    🗑️ Delete Book
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{{ url_for('books.book_list') }}"
+               class="btn-action btn-back-main">
+                ← Back to Catalog
+            </a>
+        </div>
+    </div>
 </div>
+
 {% endblock %}

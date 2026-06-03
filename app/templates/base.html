@@ -7,157 +7,301 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
+        /* ── Base ── */
+        body { background-color:#f0f2f5; font-family:'Segoe UI',sans-serif; }
+
+        /* ── Page fade-in ── */
+        .main-content { animation: pageFadeIn 0.4s ease both; }
+        @keyframes pageFadeIn {
+            from { opacity:0; transform:translateY(8px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ── Sidebar ── */
         .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
-            padding-top: 20px;
+            min-height:100vh;
+            background:linear-gradient(180deg,#1a237e 0%,#283593 100%);
+            padding-top:20px; position:sticky; top:0;
+            transition:width 0.3s ease;
         }
         .sidebar .nav-link {
-            color: #c5cae9;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin: 2px 10px;
-            transition: all 0.2s;
+            color:#c5cae9; padding:10px 20px;
+            border-radius:8px; margin:2px 10px;
+            transition:all 0.25s ease; position:relative; overflow:hidden;
         }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background-color: rgba(255,255,255,0.15);
-            color: #ffffff;
+        .sidebar .nav-link::before {
+            content:''; position:absolute; left:0; top:0;
+            height:100%; width:3px; background:#fff;
+            border-radius:0 4px 4px 0;
+            transform:scaleY(0); transition:transform 0.25s ease;
         }
-        .sidebar .nav-link i { margin-right: 8px; }
+        .sidebar .nav-link:hover { background:rgba(255,255,255,0.12); color:#fff; transform:translateX(4px); }
+        .sidebar .nav-link.active { background:rgba(255,255,255,0.18); color:#fff; }
+        .sidebar .nav-link.active::before { transform:scaleY(1); }
+        .sidebar .nav-link i { margin-right:8px; transition:transform 0.2s; }
+        .sidebar .nav-link:hover i { transform:scale(1.2); }
         .sidebar-brand {
-            color: #ffffff;
-            font-size: 1.2rem;
-            font-weight: 700;
-            padding: 10px 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 10px;
+            color:#fff; font-size:1.2rem; font-weight:700;
+            padding:10px 20px 20px;
+            border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px;
         }
-        .main-content { padding: 30px; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        .card-header { border-radius: 12px 12px 0 0 !important; }
-        .stat-card { border-left: 4px solid; }
-        .stat-card.blue { border-color: #1a237e; }
-        .stat-card.green { border-color: #2e7d32; }
-        .stat-card.orange { border-color: #e65100; }
-        .stat-card.red { border-color: #c62828; }
-        .badge-available { background-color: #2e7d32; }
-        .badge-borrowed { background-color: #e65100; }
-        .badge-overdue { background-color: #c62828; }
+        .sidebar-brand i { animation:bookBounce 2s ease-in-out infinite; display:inline-block; }
+        @keyframes bookBounce {
+            0%,100% { transform:translateY(0); }
+            50% { transform:translateY(-3px); }
+        }
+
+        /* ── Topbar ── */
         .topbar {
-            background: #ffffff;
-            padding: 12px 30px;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 0;
+            background:#fff; padding:12px 30px;
+            border-bottom:1px solid #e8eaf0;
+            box-shadow:0 1px 4px rgba(0,0,0,0.05);
         }
+
+        /* ── Cards ── */
+        .card {
+            border:none; border-radius:14px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.06);
+            transition:transform 0.2s ease, box-shadow 0.2s ease;
+            animation:cardFadeIn 0.5s ease both;
+        }
+        .card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+        @keyframes cardFadeIn {
+            from { opacity:0; transform:translateY(16px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Staggered card animation */
+        .row .col-md-3:nth-child(1) .card { animation-delay:0.05s; }
+        .row .col-md-3:nth-child(2) .card { animation-delay:0.10s; }
+        .row .col-md-3:nth-child(3) .card { animation-delay:0.15s; }
+        .row .col-md-3:nth-child(4) .card { animation-delay:0.20s; }
+        .row .col-md-4:nth-child(1) .card { animation-delay:0.05s; }
+        .row .col-md-4:nth-child(2) .card { animation-delay:0.10s; }
+        .row .col-md-4:nth-child(3) .card { animation-delay:0.15s; }
+
+        /* ── Stat cards ── */
+        .stat-card { border-left:4px solid; overflow:hidden; position:relative; }
+        .stat-card::after {
+            content:''; position:absolute; right:-20px; top:-20px;
+            width:80px; height:80px; border-radius:50%;
+            background:rgba(0,0,0,0.04);
+        }
+        .stat-card.blue { border-color:#1a237e; }
+        .stat-card.green { border-color:#2e7d32; }
+        .stat-card.orange { border-color:#e65100; }
+        .stat-card.red { border-color:#c62828; }
+
+        /* Count-up numbers */
+        .stat-count { transition:all 0.3s ease; }
+
+        /* ── Tables ── */
+        .table tbody tr {
+            transition:background 0.15s ease, transform 0.15s ease;
+            animation:rowFadeIn 0.4s ease both;
+        }
+        .table tbody tr:hover { background:rgba(26,35,126,0.04) !important; transform:scale(1.002); }
+        @keyframes rowFadeIn {
+            from { opacity:0; transform:translateX(-8px); }
+            to   { opacity:1; transform:translateX(0); }
+        }
+        .table tbody tr:nth-child(1) { animation-delay:0.05s; }
+        .table tbody tr:nth-child(2) { animation-delay:0.10s; }
+        .table tbody tr:nth-child(3) { animation-delay:0.15s; }
+        .table tbody tr:nth-child(4) { animation-delay:0.20s; }
+        .table tbody tr:nth-child(5) { animation-delay:0.25s; }
+
+        /* ── Buttons ── */
+        .btn { transition:all 0.2s ease !important; }
+        .btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+        .btn:active { transform:translateY(0) scale(0.98); }
+        .btn-success { background:#2e7d32; border-color:#2e7d32; }
+        .btn-primary { background:#1a237e; border-color:#1a237e; }
+
+        /* ── Flash messages ── */
+        .alert {
+            border-radius:10px; border:none;
+            animation:slideDown 0.4s ease both;
+            box-shadow:0 2px 8px rgba(0,0,0,0.08);
+        }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-12px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ── Badges ── */
+        .badge { border-radius:20px; padding:4px 10px; font-weight:500; }
+
+        /* ── Book cards ── */
+        .book-card { transition:all 0.25s ease; }
+        .book-card:hover img { transform:scale(1.05); }
+        .book-card img { transition:transform 0.25s ease; }
+
+        /* ── Search bar ── */
+        .form-control:focus {
+            border-color:#1a237e;
+            box-shadow:0 0 0 3px rgba(26,35,126,0.1);
+        }
+
+        /* ── Role badge ── */
         .role-badge {
-            font-size: 0.75rem;
-            padding: 3px 10px;
-            border-radius: 20px;
+            font-size:0.75rem; padding:3px 10px;
+            border-radius:20px; animation:badgePop 0.5s ease both;
         }
+        @keyframes badgePop {
+            0% { transform:scale(0); opacity:0; }
+            70% { transform:scale(1.1); }
+            100% { transform:scale(1); opacity:1; }
+        }
+
+        /* ── Page title ── */
+        .main-content .topbar h6 {
+            animation:fadeInLeft 0.4s ease both;
+        }
+        @keyframes fadeInLeft {
+            from { opacity:0; transform:translateX(-10px); }
+            to   { opacity:1; transform:translateX(0); }
+        }
+
+        /* ── Loading bar ── */
+        .page-loader {
+            position:fixed; top:0; left:0; height:3px;
+            background:linear-gradient(90deg,#1a237e,#42a5f5);
+            animation:loadBar 0.6s ease forwards;
+            z-index:9999;
+        }
+        @keyframes loadBar {
+            from { width:0; opacity:1; }
+            to   { width:100%; opacity:0; }
+        }
+
+        .main-content { padding:30px; }
+        .card-header { border-radius:14px 14px 0 0 !important; }
     </style>
 </head>
 <body>
+
+<!-- Page loader bar -->
+<div class="page-loader" id="pageLoader"></div>
+
 <div class="d-flex">
     {% if current_user.is_authenticated %}
     <!-- Sidebar -->
-    <div class="sidebar" style="width: 240px; min-width: 240px;">
+    <div class="sidebar" style="width:240px;min-width:240px;">
         <div class="sidebar-brand">
             <i class="bi bi-book-half"></i> LibraryMS
         </div>
         <ul class="nav flex-column">
             {% if current_user.role == 'admin' %}
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('members.admin_dashboard') }}">
+                <a class="nav-link {% if request.endpoint == 'members.admin_dashboard' %}active{% endif %}"
+                   href="{{ url_for('members.admin_dashboard') }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('books.book_list') }}">
+                <a class="nav-link {% if request.endpoint == 'books.book_list' %}active{% endif %}"
+                   href="{{ url_for('books.book_list') }}">
                     <i class="bi bi-journals"></i> Books
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('members.member_list') }}">
+                <a class="nav-link {% if request.endpoint == 'members.member_list' %}active{% endif %}"
+                   href="{{ url_for('members.member_list') }}">
                     <i class="bi bi-people"></i> Members
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('members.pending_members') }}">
+                <a class="nav-link {% if request.endpoint == 'members.pending_members' %}active{% endif %}"
+                   href="{{ url_for('members.pending_members') }}">
                     <i class="bi bi-person-check"></i> Approvals
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.all_loans') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.all_loans' %}active{% endif %}"
+                   href="{{ url_for('loans.all_loans') }}">
                     <i class="bi bi-arrow-left-right"></i> Loans
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.overdue_loans') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.overdue_loans' %}active{% endif %}"
+                   href="{{ url_for('loans.overdue_loans') }}">
                     <i class="bi bi-exclamation-triangle"></i> Overdue
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.fines_list') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.fines_list' %}active{% endif %}"
+                   href="{{ url_for('loans.fines_list') }}">
                     <i class="bi bi-cash-coin"></i> Fines
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('reports.reports_home') }}">
+                <a class="nav-link {% if request.endpoint == 'reports.reports_home' %}active{% endif %}"
+                   href="{{ url_for('reports.reports_home') }}">
                     <i class="bi bi-bar-chart"></i> Reports
                 </a>
             </li>
             {% elif current_user.role == 'librarian' %}
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('books.librarian_dashboard') }}">
+                <a class="nav-link {% if request.endpoint == 'books.librarian_dashboard' %}active{% endif %}"
+                   href="{{ url_for('books.librarian_dashboard') }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('books.book_list') }}">
+                <a class="nav-link {% if request.endpoint == 'books.book_list' %}active{% endif %}"
+                   href="{{ url_for('books.book_list') }}">
                     <i class="bi bi-journals"></i> Books
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('books.add_book') }}">
+                <a class="nav-link {% if request.endpoint == 'books.add_book' %}active{% endif %}"
+                   href="{{ url_for('books.add_book') }}">
                     <i class="bi bi-plus-circle"></i> Add Book
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.all_loans') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.all_loans' %}active{% endif %}"
+                   href="{{ url_for('loans.all_loans') }}">
                     <i class="bi bi-arrow-left-right"></i> Loans
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.overdue_loans') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.overdue_loans' %}active{% endif %}"
+                   href="{{ url_for('loans.overdue_loans') }}">
                     <i class="bi bi-exclamation-triangle"></i> Overdue
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.fines_list') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.fines_list' %}active{% endif %}"
+                   href="{{ url_for('loans.fines_list') }}">
                     <i class="bi bi-cash-coin"></i> Fines
                 </a>
             </li>
             {% else %}
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.member_dashboard') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.member_dashboard' %}active{% endif %}"
+                   href="{{ url_for('loans.member_dashboard') }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('books.book_list') }}">
+                <a class="nav-link {% if request.endpoint == 'books.book_list' %}active{% endif %}"
+                   href="{{ url_for('books.book_list') }}">
                     <i class="bi bi-search"></i> Browse Books
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('loans.loan_history') }}">
+                <a class="nav-link {% if request.endpoint == 'loans.loan_history' %}active{% endif %}"
+                   href="{{ url_for('loans.loan_history') }}">
                     <i class="bi bi-clock-history"></i> My History
                 </a>
             </li>
             {% endif %}
-            <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 20px;">
+            <hr style="border-color:rgba(255,255,255,0.1);margin:10px 20px;">
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('auth.profile') }}">
+                <a class="nav-link {% if request.endpoint == 'auth.profile' %}active{% endif %}"
+                   href="{{ url_for('auth.profile') }}">
                     <i class="bi bi-person-circle"></i> Profile
                 </a>
             </li>
@@ -174,7 +318,7 @@
     <div class="flex-grow-1">
         {% if current_user.is_authenticated %}
         <div class="topbar d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 text-muted">{% block page_title %}{% endblock %}</h6>
+            <h6 class="mb-0 text-muted fw-semibold">{% block page_title %}{% endblock %}</h6>
             <div class="d-flex align-items-center gap-2">
                 <span class="role-badge bg-primary text-white">{{ current_user.role|capitalize }}</span>
                 <span class="text-muted small">{{ current_user.name }}</span>
@@ -198,6 +342,53 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Auto-dismiss alerts after 4 seconds
+document.querySelectorAll('.alert').forEach(function(alert) {
+    setTimeout(function() {
+        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+        bsAlert.close();
+    }, 4000);
+});
+
+// Count up stat numbers
+document.querySelectorAll('.stat-count').forEach(function(el) {
+    const target = parseInt(el.getAttribute('data-target') || el.innerText);
+    if (isNaN(target)) return;
+    let current = 0;
+    const step = Math.ceil(target / 50);
+    el.innerText = '0';
+    const timer = setInterval(function() {
+        current = Math.min(current + step, target);
+        el.innerText = current;
+        if (current >= target) clearInterval(timer);
+    }, 30);
+});
+
+// Page transition on link click
+document.querySelectorAll('a[href]:not([href^="#"]):not([href^="javascript"])').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href && !href.startsWith('http') && !href.startsWith('mailto')) {
+            document.body.style.opacity = '0.8';
+            document.body.style.transition = 'opacity 0.2s ease';
+        }
+    });
+});
+
+// Restore opacity on page load
+window.addEventListener('pageshow', function() {
+    document.body.style.opacity = '1';
+    document.body.style.transition = 'opacity 0.3s ease';
+});
+
+// Remove page loader
+window.addEventListener('load', function() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.style.display = 'none';
+});
+</script>
 </body>
 </html>

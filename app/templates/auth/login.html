@@ -1,37 +1,261 @@
 {% extends "base.html" %}
 {% block title %}Login — LibraryMS{% endblock %}
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <i class="bi bi-book-half text-primary" style="font-size:2.5rem"></i>
-                    <h4 class="mt-2 fw-bold">LibraryMS</h4>
-                    <p class="text-muted small">Sign in to your account</p>
+<div class="login-page">
+    <div class="login-left">
+        <div class="circle c1"></div>
+        <div class="circle c2"></div>
+        <div class="circle c3"></div>
+        <div class="particles" id="particles"></div>
+        <div class="login-left-content">
+            <div class="brand animate-fade-up" style="animation-delay:0.1s">
+                <div class="brand-icon"><i class="bi bi-book-half"></i></div>
+                <span class="brand-name">LibraryMS</span>
+            </div>
+            <h1 class="animate-fade-up" style="animation-delay:0.2s">Your smart library, always open</h1>
+            <p class="animate-fade-up" style="animation-delay:0.3s">Manage books, members, and borrowing records all in one place — fast, simple, and organised.</p>
+            <div class="stats animate-fade-up" style="animation-delay:0.4s">
+                <div class="stat-item">
+                    <div class="stat-num" data-count="500">0</div>
+                    <div class="stat-label">Books</div>
                 </div>
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}{% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}{% endif %}{% endwith %}
-                <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" required autofocus>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-num" data-count="3">0</div>
+                    <div class="stat-label">User Roles</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-num">24/7</div>
+                    <div class="stat-label">Access</div>
+                </div>
+            </div>
+            <div class="features animate-fade-up" style="animation-delay:0.5s">
+                <div class="feature-item"><i class="bi bi-shield-check"></i> Secure role-based access control</div>
+                <div class="feature-item"><i class="bi bi-bar-chart"></i> Real-time reports and analytics</div>
+                <div class="feature-item"><i class="bi bi-bell"></i> Automatic overdue reminders</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="login-right">
+        <div class="login-form-wrap animate-fade-up" style="animation-delay:0.2s">
+            <h2>Welcome back</h2>
+            <p class="subtitle">Sign in to your account to continue</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for category, message in messages %}
+            <div class="alert alert-{{ category }} animate-slide-down">{{ message }}</div>
+            {% endfor %}{% endif %}{% endwith %}
+
+            <p class="role-label">Sign in as</p>
+            <div class="role-cards">
+                <div class="role-card" onclick="setRole('admin')">
+                    <i class="bi bi-shield-star"></i>
+                    <span>Admin</span>
+                </div>
+                <div class="role-card" onclick="setRole('librarian')">
+                    <i class="bi bi-journals"></i>
+                    <span>Librarian</span>
+                </div>
+                <div class="role-card" onclick="setRole('member')">
+                    <i class="bi bi-person"></i>
+                    <span>Member</span>
+                </div>
+            </div>
+
+            <form method="POST" id="loginForm">
+                <div class="form-group">
+                    <label>Email address</label>
+                    <div class="input-wrap">
+                        <i class="bi bi-envelope input-icon"></i>
+                        <input type="email" name="email" placeholder="you@example.com" required autofocus />
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrap">
+                        <i class="bi bi-lock input-icon"></i>
+                        <input type="password" name="password" id="passwordInput" placeholder="••••••••" required />
+                        <i class="bi bi-eye toggle-pw" id="togglePw" onclick="togglePassword()"></i>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Login</button>
-                </form>
-                <hr>
-                <p class="text-center small mb-0">
-                    Don't have an account?
-                    <a href="{{ url_for('auth.register') }}">Register here</a>
-                </p>
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span id="btnText"><i class="bi bi-box-arrow-in-right"></i> Sign in</span>
+                    <span id="btnLoader" style="display:none">
+                        <span class="spinner"></span> Signing in...
+                    </span>
+                </button>
+            </form>
+
+            <div class="divider-line"><span>new to LibraryMS?</span></div>
+            <div class="register-link">
+                <a href="{{ url_for('auth.register') }}">Create a member account →</a>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.login-page { display:flex; min-height:100vh; margin:-30px; }
+.login-left {
+    flex:1; background:linear-gradient(145deg,#1a237e 0%,#283593 60%,#1565c0 100%);
+    display:flex; align-items:center; justify-content:center;
+    padding:3rem; position:relative; overflow:hidden;
+}
+.circle {
+    position:absolute; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.08); animation:pulse 4s ease-in-out infinite;
+}
+.c1 { width:350px; height:350px; top:-100px; right:-100px; animation-delay:0s; }
+.c2 { width:220px; height:220px; bottom:60px; right:30px; animation-delay:1s; }
+.c3 { width:130px; height:130px; bottom:160px; right:170px; animation-delay:2s; }
+@keyframes pulse {
+    0%,100% { transform:scale(1); opacity:0.5; }
+    50% { transform:scale(1.05); opacity:1; }
+}
+.particles { position:absolute; inset:0; pointer-events:none; }
+.particle {
+    position:absolute; width:3px; height:3px; background:rgba(255,255,255,0.3);
+    border-radius:50%; animation:float linear infinite;
+}
+@keyframes float {
+    0% { transform:translateY(100vh) rotate(0deg); opacity:0; }
+    10% { opacity:1; }
+    90% { opacity:1; }
+    100% { transform:translateY(-100px) rotate(720deg); opacity:0; }
+}
+.login-left-content { position:relative; z-index:1; max-width:320px; color:#fff; }
+.brand { display:flex; align-items:center; gap:12px; margin-bottom:2.5rem; }
+.brand-icon {
+    width:44px; height:44px; background:rgba(255,255,255,0.15);
+    border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;
+}
+.brand-name { font-size:20px; font-weight:600; }
+.login-left h1 { font-size:26px; font-weight:600; line-height:1.4; margin-bottom:1rem; }
+.login-left p { font-size:14px; opacity:0.75; line-height:1.7; margin-bottom:2rem; }
+.stats { display:flex; gap:1.5rem; margin-bottom:2rem; }
+.stat-num { font-size:24px; font-weight:700; }
+.stat-label { font-size:11px; opacity:0.6; margin-top:2px; }
+.stat-divider { width:1px; background:rgba(255,255,255,0.2); }
+.features { display:flex; flex-direction:column; gap:10px; }
+.feature-item { font-size:13px; opacity:0.8; display:flex; align-items:center; gap:8px; }
+.login-right {
+    width:420px; background:var(--bs-body-bg,#fff);
+    display:flex; align-items:center; justify-content:center; padding:3rem 2.5rem;
+}
+.login-form-wrap { width:100%; }
+.login-form-wrap h2 { font-size:24px; font-weight:700; margin-bottom:4px; }
+.subtitle { color:#666; font-size:14px; margin-bottom:1.5rem; }
+.role-label { font-size:13px; color:#666; margin-bottom:8px; }
+.role-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:1.5rem; }
+.role-card {
+    border:1.5px solid #e0e0e0; border-radius:10px; padding:12px 8px;
+    text-align:center; cursor:pointer; transition:all 0.2s;
+}
+.role-card:hover { border-color:#1a237e; background:#f0f4ff; transform:translateY(-2px); }
+.role-card.active { border-color:#1a237e; background:#e8eaf6; }
+.role-card i { font-size:22px; color:#1a237e; display:block; margin-bottom:4px; }
+.role-card span { font-size:12px; color:#555; }
+.form-group { margin-bottom:1rem; }
+.form-group label { font-size:13px; color:#555; display:block; margin-bottom:5px; font-weight:500; }
+.input-wrap { position:relative; }
+.input-wrap input {
+    width:100%; padding:10px 40px 10px 38px;
+    border:1.5px solid #e0e0e0; border-radius:10px;
+    font-size:14px; transition:all 0.2s; outline:none;
+    background:#fafafa;
+}
+.input-wrap input:focus { border-color:#1a237e; background:#fff; box-shadow:0 0 0 3px rgba(26,35,126,0.1); }
+.input-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#aaa; font-size:16px; }
+.toggle-pw { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#aaa; font-size:16px; cursor:pointer; }
+.btn-login {
+    width:100%; padding:12px; background:#1a237e; color:#fff;
+    border:none; border-radius:10px; font-size:14px; font-weight:600;
+    cursor:pointer; margin-top:0.5rem; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-login:hover { background:#283593; transform:translateY(-1px); box-shadow:0 4px 15px rgba(26,35,126,0.3); }
+.btn-login:active { transform:translateY(0); }
+.spinner {
+    width:16px; height:16px; border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff; border-radius:50%; display:inline-block;
+    animation:spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.divider-line {
+    display:flex; align-items:center; gap:12px; margin:1.5rem 0;
+    color:#aaa; font-size:12px;
+}
+.divider-line::before,.divider-line::after { content:''; flex:1; height:1px; background:#e0e0e0; }
+.register-link { text-align:center; font-size:13px; color:#666; }
+.register-link a { color:#1a237e; text-decoration:none; font-weight:600; }
+.register-link a:hover { text-decoration:underline; }
+
+/* ── Global animations ── */
+.animate-fade-up { animation:fadeUp 0.6s ease both; }
+.animate-slide-down { animation:slideDown 0.4s ease both; }
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to { opacity:1; transform:translateY(0); }
+}
+@keyframes slideDown {
+    from { opacity:0; transform:translateY(-10px); }
+    to { opacity:1; transform:translateY(0); }
+}
+</style>
+
+<script>
+// Floating particles
+(function() {
+    const container = document.getElementById('particles');
+    if (!container) return;
+    for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (8 + Math.random() * 12) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+        container.appendChild(p);
+    }
+})();
+
+// Count up numbers
+document.querySelectorAll('.stat-num[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count);
+    let current = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = current + (target >= 100 ? '+' : '');
+        if (current >= target) clearInterval(timer);
+    }, 40);
+});
+
+// Role card selection
+function setRole(role) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
+
+// Password toggle
+function togglePassword() {
+    const input = document.getElementById('passwordInput');
+    const icon = document.getElementById('togglePw');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash toggle-pw';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye toggle-pw';
+    }
+}
+
+// Login button loading state
+document.getElementById('loginForm').addEventListener('submit', function() {
+    document.getElementById('btnText').style.display = 'none';
+    document.getElementById('btnLoader').style.display = 'flex';
+});
+</script>
 {% endblock %}
