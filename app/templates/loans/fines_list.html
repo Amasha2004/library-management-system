@@ -1,45 +1,201 @@
 {% extends "base.html" %}
 {% block title %}Fines — LibraryMS{% endblock %}
-{% block page_title %}Unpaid Fines{% endblock %}
+{% block page_title %}Fines Management{% endblock %}
 {% block content %}
-<div class="card">
-    <div class="card-header bg-warning text-dark">
-        <i class="bi bi-cash-coin"></i> Unpaid Fines
-        <span class="badge bg-dark ms-2">{{ fines|length }}</span>
-    </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr><th>Member</th><th>Book</th><th>Due Date</th><th>Return Date</th><th>Fine Amount</th><th>Action</th></tr>
-            </thead>
-            <tbody>
-                {% for fine in fines %}
-                <tr>
-                    <td class="fw-semibold">{{ fine.loan.member.name }}</td>
-                    <td>{{ fine.loan.book.title }}</td>
-                    <td>{{ fine.loan.due_date }}</td>
-                    <td>{{ fine.loan.return_date }}</td>
-                    <td class="fw-bold text-danger">¥{{ fine.amount }}</td>
-                    <td>
-                        <form method="POST"
-                              action="{{ url_for('loans.pay_fine', fine_id=fine.id) }}"
-                              onsubmit="return confirm('Mark this fine as paid?')">
-                            <button type="submit" class="btn btn-sm btn-success">
-                                <i class="bi bi-check-circle"></i> Mark Paid
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
-                        <i class="bi bi-emoji-smile fs-2"></i>
-                        <p class="mt-2 mb-0">No unpaid fines!</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+/* Header */
+.page-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:24px; animation:fadeUp 0.5s ease both;
+}
+.page-title {
+    font-family:'Playfair Display',serif;
+    font-size:26px; font-weight:700; color:#1a1a2e;
+}
+.page-sub { font-size:13px; color:#aaa; margin-top:2px; }
+
+/* Stats */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.stat-box {
+    border-radius:14px; padding:20px;
+    position:relative; overflow:hidden;
+    animation:fadeUp 0.5s ease both;
+    transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.stat-box:hover { transform:translateY(-4px); }
+.stat-box:nth-child(1) { animation-delay:0.05s; background:linear-gradient(135deg,#ef4444,#dc2626); }
+.stat-box:nth-child(2) { animation-delay:0.10s; background:linear-gradient(135deg,#f59e0b,#d97706); }
+.stat-box:nth-child(3) { animation-delay:0.15s; background:linear-gradient(135deg,#10b981,#059669); }
+.stat-box-bg {
+    position:absolute; right:-10px; bottom:-10px;
+    font-size:70px; opacity:0.1; line-height:1;
+}
+.stat-box-label { font-size:11px; font-weight:600; letter-spacing:1.5px;
+    text-transform:uppercase; color:rgba(255,255,255,0.75); margin-bottom:8px; }
+.stat-box-val { font-size:32px; font-weight:700; color:#fff; font-family:'Playfair Display',serif; }
+.stat-box-sub { font-size:12px; color:rgba(255,255,255,0.6); margin-top:4px; }
+
+/* Table card */
+.table-card {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    overflow:hidden; animation:fadeUp 0.5s ease 0.2s both;
+}
+.table-card-header {
+    padding:16px 20px; border-bottom:1px solid #f0f0f0;
+    display:flex; justify-content:space-between; align-items:center;
+    background:linear-gradient(135deg,#fffbeb,#fff);
+}
+.table-card-title { font-size:15px; font-weight:700; color:#1a1a2e; }
+.fines-count {
+    background:#fef9c3; color:#92400e;
+    font-size:12px; font-weight:700;
+    padding:3px 10px; border-radius:20px;
+}
+.fines-table { width:100%; border-collapse:collapse; }
+.fines-table th {
+    padding:10px 16px; font-size:11px; font-weight:600;
+    letter-spacing:1px; text-transform:uppercase;
+    color:#aaa; background:#fafafa; text-align:left;
+}
+.fines-table td {
+    padding:14px 16px; font-size:13px;
+    border-top:1px solid #f5f5f5; color:#333;
+    transition:background 0.15s; vertical-align:middle;
+}
+.fines-table tr:hover td { background:#fffbeb; }
+
+/* Member chip */
+.member-chip { display:flex; align-items:center; gap:8px; }
+.member-av {
+    width:32px; height:32px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.member-name { font-weight:600; color:#1a1a2e; }
+
+/* Fine amount */
+.fine-pill {
+    display:inline-flex; align-items:center; gap:4px;
+    background:#fff0f0; color:#dc2626; border:1.5px solid #fecaca;
+    padding:4px 12px; border-radius:20px;
+    font-size:13px; font-weight:700;
+}
+
+/* Pay button */
+.btn-pay {
+    padding:7px 16px;
+    background:linear-gradient(135deg,#10b981,#059669);
+    color:#fff; border:none; border-radius:8px;
+    font-size:12px; font-weight:600; cursor:pointer;
+    transition:all 0.2s; display:flex; align-items:center; gap:5px;
+}
+.btn-pay:hover { opacity:0.9; transform:scale(1.05); }
+
+/* Empty state */
+.empty-wrap { text-align:center; padding:70px 20px; }
+.empty-icon { font-size:48px; display:block; margin-bottom:12px; opacity:0.3; }
+.empty-title { font-size:16px; font-weight:600; color:#666; margin-bottom:6px; }
+.empty-sub { font-size:13px; color:#aaa; }
+</style>
+
+<!-- Header -->
+<div class="page-header">
+    <div>
+        <div class="page-title">Fines Management</div>
+        <div class="page-sub">Track and collect overdue book fines</div>
     </div>
 </div>
+
+<!-- Stats -->
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-box-bg">💰</div>
+        <div class="stat-box-label">Unpaid Fines</div>
+        <div class="stat-box-val">{{ fines|length }}</div>
+        <div class="stat-box-sub">Pending collection</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-box-bg">¥</div>
+        <div class="stat-box-label">Total Amount</div>
+        <div class="stat-box-val">¥{{ fines|sum(attribute='amount')|round(2) }}</div>
+        <div class="stat-box-sub">To be collected</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-box-bg">✅</div>
+        <div class="stat-box-label">Rate ¥/Day</div>
+        <div class="stat-box-val">¥0.50</div>
+        <div class="stat-box-sub">Per overdue day</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="table-card">
+    <div class="table-card-header">
+        <div class="table-card-title">💰 Unpaid Fines</div>
+        <span class="fines-count">{{ fines|length }} unpaid</span>
+    </div>
+    <table class="fines-table">
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Book</th>
+                <th>Due Date</th>
+                <th>Return Date</th>
+                <th>Fine Amount</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fine in fines %}
+            <tr>
+                <td>
+                    <div class="member-chip">
+                        <div class="member-av"
+                             style="background:{{ ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'][loop.index0 % 5] }}">
+                            {{ fine.loan.member.name[0].upper() }}
+                        </div>
+                        <div class="member-name">{{ fine.loan.member.name }}</div>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight:600">{{ fine.loan.book.title }}</div>
+                    <div style="font-size:11px;color:#aaa">{{ fine.loan.book.author }}</div>
+                </td>
+                <td style="color:#ef4444;font-weight:600">{{ fine.loan.due_date }}</td>
+                <td style="color:#555">{{ fine.loan.return_date }}</td>
+                <td><span class="fine-pill">💰 ¥{{ fine.amount }}</span></td>
+                <td>
+                    <form method="POST"
+                          action="{{ url_for('loans.pay_fine', fine_id=fine.id) }}"
+                          onsubmit="return confirm('Mark this fine as paid?')">
+                        <button type="submit" class="btn-pay">
+                            ✓ Mark Paid
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">
+                    <div class="empty-wrap">
+                        <span class="empty-icon">😊</span>
+                        <div class="empty-title">No unpaid fines!</div>
+                        <div class="empty-sub">All fines have been collected.</div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}

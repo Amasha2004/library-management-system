@@ -2,49 +2,231 @@
 {% block title %}Overdue Loans — LibraryMS{% endblock %}
 {% block page_title %}Overdue Loans{% endblock %}
 {% block content %}
-<div class="card">
-    <div class="card-header bg-danger text-white">
-        <i class="bi bi-exclamation-triangle"></i> Overdue Loans
-        <span class="badge bg-light text-danger ms-2">{{ loans|length }}</span>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+/* Alert banner */
+.overdue-banner {
+    background:linear-gradient(135deg,#7f1d1d,#991b1b,#b91c1c);
+    border-radius:16px; padding:24px 28px;
+    display:flex; align-items:center; gap:20px;
+    margin-bottom:24px; position:relative; overflow:hidden;
+    animation:fadeUp 0.5s ease both;
+}
+.overdue-banner::before {
+    content:'⚠️'; position:absolute; right:24px; top:50%;
+    transform:translateY(-50%); font-size:80px; opacity:0.1;
+}
+.banner-icon { font-size:40px; }
+.banner-title {
+    font-family:'Playfair Display',serif;
+    font-size:22px; font-weight:700; color:#fff; margin-bottom:4px;
+}
+.banner-sub { font-size:13px; color:rgba(255,255,255,0.7); }
+.banner-count {
+    margin-left:auto; text-align:center;
+    background:rgba(255,255,255,0.15); border-radius:12px;
+    padding:12px 20px; position:relative; z-index:1;
+}
+.banner-count-num { font-size:36px; font-weight:700; color:#fff; line-height:1; }
+.banner-count-lbl { font-size:11px; color:rgba(255,255,255,0.6); margin-top:4px; letter-spacing:1px; text-transform:uppercase; }
+
+/* Stats row */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.stat-box {
+    background:#fff; border-radius:12px; padding:16px 18px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    display:flex; align-items:center; gap:12px;
+    animation:fadeUp 0.5s ease both;
+}
+.stat-box:nth-child(1) { animation-delay:0.1s; }
+.stat-box:nth-child(2) { animation-delay:0.15s; }
+.stat-box:nth-child(3) { animation-delay:0.2s; }
+.stat-box-icon { font-size:24px; width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+.sbi-red { background:#fff0f0; }
+.sbi-amber { background:#fffbeb; }
+.sbi-purple { background:#f5f3ff; }
+.stat-box-val { font-size:24px; font-weight:700; color:#1a1a2e; line-height:1; }
+.stat-box-lbl { font-size:12px; color:#aaa; margin-top:2px; }
+
+/* Table */
+.table-wrap {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    overflow:hidden; animation:fadeUp 0.5s ease 0.2s both;
+}
+.table-header {
+    padding:16px 20px; border-bottom:1px solid #f0f0f0;
+    display:flex; justify-content:space-between; align-items:center;
+    background:linear-gradient(135deg,#fff5f5,#fff);
+}
+.table-title { font-size:15px; font-weight:700; color:#1a1a2e; }
+.overdue-count {
+    background:#fee2e2; color:#dc2626;
+    font-size:12px; font-weight:700;
+    padding:3px 10px; border-radius:20px;
+}
+.overdue-table { width:100%; border-collapse:collapse; }
+.overdue-table th {
+    padding:10px 16px; font-size:11px; font-weight:600;
+    letter-spacing:1px; text-transform:uppercase;
+    color:#aaa; background:#fafafa; text-align:left;
+}
+.overdue-table td {
+    padding:14px 16px; font-size:13px;
+    border-top:1px solid #f5f5f5; color:#333;
+    transition:background 0.15s; vertical-align:middle;
+}
+.overdue-table tr:hover td { background:#fff5f5; }
+
+/* Member chip */
+.member-chip { display:flex; align-items:center; gap:8px; }
+.member-av {
+    width:32px; height:32px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.member-name { font-weight:600; color:#1a1a2e; font-size:13px; }
+.member-email { font-size:11px; color:#aaa; margin-top:1px; }
+
+/* Overdue days badge */
+.overdue-days {
+    display:inline-flex; align-items:center; gap:4px;
+    background:#fee2e2; color:#dc2626;
+    padding:4px 10px; border-radius:20px;
+    font-size:12px; font-weight:700;
+}
+
+/* Fine amount */
+.fine-val { font-size:15px; font-weight:700; color:#dc2626; }
+
+/* Return button */
+.btn-return {
+    padding:7px 16px;
+    background:linear-gradient(135deg,#10b981,#059669);
+    color:#fff; border:none; border-radius:8px;
+    font-size:12px; font-weight:600; cursor:pointer;
+    transition:all 0.2s;
+}
+.btn-return:hover { opacity:0.9; transform:scale(1.05); }
+
+/* Empty state */
+.empty-wrap {
+    text-align:center; padding:70px 20px;
+}
+.empty-icon { font-size:48px; display:block; margin-bottom:12px; opacity:0.3; }
+.empty-title { font-size:16px; font-weight:600; color:#666; margin-bottom:6px; }
+.empty-sub { font-size:13px; color:#aaa; }
+</style>
+
+<!-- Banner -->
+<div class="overdue-banner">
+    <div class="banner-icon">🚨</div>
+    <div>
+        <div class="banner-title">Overdue Books Alert</div>
+        <div class="banner-sub">These members have exceeded their return deadline. Fine: ¥0.50 per day.</div>
     </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr><th>Member</th><th>Email</th><th>Book</th><th>Due Date</th><th>Days Overdue</th><th>Fine (¥)</th><th>Action</th></tr>
-            </thead>
-            <tbody>
-                {% for loan in loans %}
-                <tr class="table-danger">
-                    <td class="fw-semibold">{{ loan.member.name }}</td>
-                    <td>{{ loan.member.email }}</td>
-                    <td>{{ loan.book.title }}</td>
-                    <td>{{ loan.due_date }}</td>
-                    <td>
-                        <span class="badge bg-danger">
-                            {{ (today - loan.due_date).days }} days
-                        </span>
-                    </td>
-                    <td class="fw-bold text-danger">¥{{ loan.calculate_fine() }}</td>
-                    <td>
-                        <form method="POST"
-                              action="{{ url_for('loans.return_book', loan_id=loan.id) }}"
-                              onsubmit="return confirm('Mark as returned and apply fine?')">
-                            <button type="submit" class="btn btn-sm btn-success">
-                                <i class="bi bi-check"></i> Return
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
-                        <i class="bi bi-check-all fs-2"></i>
-                        <p class="mt-2 mb-0">No overdue loans!</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="banner-count">
+        <div class="banner-count-num">{{ loans|length }}</div>
+        <div class="banner-count-lbl">Overdue</div>
     </div>
 </div>
+
+<!-- Stats -->
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-box-icon sbi-red">📚</div>
+        <div>
+            <div class="stat-box-val">{{ loans|length }}</div>
+            <div class="stat-box-lbl">Overdue Books</div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-box-icon sbi-amber">💰</div>
+        <div>
+            <div class="stat-box-val">¥{{ loans|sum(attribute='fine_amount')|round(2) }}</div>
+            <div class="stat-box-lbl">Total Fines Accrued</div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-box-icon sbi-purple">👥</div>
+        <div>
+            <div class="stat-box-val">{{ loans|map(attribute='member')|map(attribute='id')|list|unique|list|length }}</div>
+            <div class="stat-box-lbl">Members Affected</div>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="table-wrap">
+    <div class="table-header">
+        <div class="table-title">⚠️ Overdue Loan Records</div>
+        <span class="overdue-count">{{ loans|length }} overdue</span>
+    </div>
+    <table class="overdue-table">
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Book</th>
+                <th>Due Date</th>
+                <th>Days Overdue</th>
+                <th>Fine (¥)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loan in loans %}
+            <tr>
+                <td>
+                    <div class="member-chip">
+                        <div class="member-av"
+                             style="background:{{ ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'][loop.index0 % 5] }}">
+                            {{ loan.member.name[0].upper() }}
+                        </div>
+                        <div>
+                            <div class="member-name">{{ loan.member.name }}</div>
+                            <div class="member-email">{{ loan.member.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight:600;color:#1a1a2e">{{ loan.book.title }}</div>
+                    <div style="font-size:11px;color:#aaa">{{ loan.book.author }}</div>
+                </td>
+                <td style="color:#ef4444;font-weight:600">{{ loan.due_date }}</td>
+                <td>
+                    <span class="overdue-days">
+                        ⏰ {{ (today - loan.due_date).days }} days
+                    </span>
+                </td>
+                <td><span class="fine-val">¥{{ loan.calculate_fine() }}</span></td>
+                <td>
+                    <form method="POST"
+                          action="{{ url_for('loans.return_book', loan_id=loan.id) }}"
+                          onsubmit="return confirm('Mark as returned and apply fine?')">
+                        <button type="submit" class="btn-return">✓ Return</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">
+                    <div class="empty-wrap">
+                        <span class="empty-icon">✅</span>
+                        <div class="empty-title">No overdue loans!</div>
+                        <div class="empty-sub">All books have been returned on time.</div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}

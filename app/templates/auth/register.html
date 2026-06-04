@@ -1,49 +1,329 @@
 {% extends "base.html" %}
 {% block title %}Register — LibraryMS{% endblock %}
 {% block content %}
-<div class="row justify-content-center mt-4">
-    <div class="col-md-5">
-        <div class="card shadow">
-            <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <i class="bi bi-person-plus text-primary" style="font-size:2rem"></i>
-                    <h4 class="mt-2 fw-bold">Create Account</h4>
-                    <p class="text-muted small">Register as a library member</p>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+.register-page { display:flex; min-height:100vh; margin:-30px; }
+
+/* Left panel */
+.reg-left {
+    width:380px; min-width:380px;
+    background:linear-gradient(145deg,#1a237e 0%,#283593 60%,#1565c0 100%);
+    display:flex; flex-direction:column; justify-content:center;
+    padding:3rem; position:relative; overflow:hidden;
+}
+.reg-circle {
+    position:absolute; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.08);
+    animation:pulse 4s ease-in-out infinite;
+}
+.rc1 { width:300px; height:300px; top:-80px; right:-80px; }
+.rc2 { width:180px; height:180px; bottom:60px; right:20px; animation-delay:1.5s; }
+@keyframes pulse {
+    0%,100% { transform:scale(1); opacity:0.5; }
+    50% { transform:scale(1.05); opacity:1; }
+}
+.reg-particles { position:absolute; inset:0; pointer-events:none; }
+.reg-particle {
+    position:absolute; width:3px; height:3px;
+    background:rgba(255,255,255,0.25); border-radius:50%;
+    animation:floatUp linear infinite;
+}
+@keyframes floatUp {
+    0% { transform:translateY(100vh); opacity:0; }
+    10% { opacity:1; }
+    90% { opacity:1; }
+    100% { transform:translateY(-100px); opacity:0; }
+}
+.reg-left-content { position:relative; z-index:1; color:#fff; }
+.reg-brand { display:flex; align-items:center; gap:12px; margin-bottom:2.5rem; }
+.reg-brand-icon {
+    width:44px; height:44px; background:rgba(255,255,255,0.15);
+    border-radius:12px; display:flex; align-items:center;
+    justify-content:center; font-size:22px;
+}
+.reg-brand-name { font-size:20px; font-weight:700; }
+.reg-left h1 {
+    font-family:'Playfair Display',serif;
+    font-size:26px; font-weight:700; line-height:1.4;
+    margin-bottom:1rem;
+}
+.reg-left p { font-size:14px; opacity:0.75; line-height:1.7; margin-bottom:2rem; }
+.reg-steps { display:flex; flex-direction:column; gap:14px; }
+.reg-step { display:flex; align-items:center; gap:12px; }
+.step-num {
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0;
+}
+.step-text { font-size:13px; opacity:0.8; }
+
+/* Right panel */
+.reg-right {
+    flex:1; background:#f0f2f5;
+    display:flex; align-items:center; justify-content:center;
+    padding:2rem;
+}
+.reg-form-wrap {
+    background:#fff; border-radius:20px;
+    padding:32px; width:100%; max-width:500px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.08);
+    animation:fadeUp 0.5s ease both;
+}
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to { opacity:1; transform:translateY(0); }
+}
+.reg-form-wrap h2 {
+    font-family:'Playfair Display',serif;
+    font-size:22px; font-weight:700; margin-bottom:4px; color:#1a1a2e;
+}
+.reg-subtitle { font-size:13px; color:#888; margin-bottom:20px; }
+
+/* Form grid */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-grid .full { grid-column:1/-1; }
+.field-group { margin-bottom:0; }
+.field-group label {
+    font-size:12px; font-weight:600; color:#555;
+    display:block; margin-bottom:5px; letter-spacing:0.3px;
+}
+.field-group label span { color:#ef4444; }
+.input-wrap { position:relative; }
+.input-wrap input,
+.input-wrap textarea {
+    width:100%; padding:10px 14px 10px 38px;
+    border:1.5px solid #e8eaf0; border-radius:10px;
+    font-size:13px; background:#fafafa; outline:none;
+    transition:all 0.2s; color:#333;
+    font-family:inherit;
+}
+.input-wrap textarea { padding-left:38px; resize:none; height:70px; }
+.input-wrap input:focus,
+.input-wrap textarea:focus {
+    border-color:#6366f1; background:#fff;
+    box-shadow:0 0 0 3px rgba(99,102,241,0.1);
+}
+.input-icon {
+    position:absolute; left:12px; top:50%;
+    transform:translateY(-50%); color:#aaa; font-size:14px;
+    pointer-events:none;
+}
+.textarea-icon { top:14px; transform:none; }
+
+/* Password strength */
+.pw-strength { height:3px; border-radius:2px; margin-top:6px; transition:all 0.3s; background:#e0e0e0; }
+.pw-hint { font-size:11px; color:#aaa; margin-top:4px; }
+
+.btn-register {
+    width:100%; padding:12px; margin-top:16px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff; border:none; border-radius:10px;
+    font-size:14px; font-weight:700; cursor:pointer;
+    transition:all 0.2s; display:flex; align-items:center;
+    justify-content:center; gap:8px;
+    box-shadow:0 4px 14px rgba(99,102,241,0.4);
+}
+.btn-register:hover { opacity:0.9; transform:translateY(-1px); }
+
+.spinner {
+    width:16px; height:16px; border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff; border-radius:50%;
+    animation:spin 0.7s linear infinite; display:none;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.login-link { text-align:center; margin-top:16px; font-size:13px; color:#888; }
+.login-link a { color:#6366f1; font-weight:600; text-decoration:none; }
+.login-link a:hover { text-decoration:underline; }
+
+.terms-note {
+    font-size:11px; color:#aaa; text-align:center;
+    margin-top:12px; line-height:1.6;
+}
+</style>
+
+<div class="register-page">
+    <!-- Left panel -->
+    <div class="reg-left">
+        <div class="reg-circle rc1"></div>
+        <div class="reg-circle rc2"></div>
+        <div class="reg-particles" id="regParticles"></div>
+        <div class="reg-left-content">
+            <div class="reg-brand animate-fade-up">
+                <div class="reg-brand-icon"><i class="bi bi-book-half" style="color:#fff"></i></div>
+                <span class="reg-brand-name">LibraryMS</span>
+            </div>
+            <h1 class="animate-fade-up">Join our library community</h1>
+            <p class="animate-fade-up">Create your account in seconds and start borrowing books from our collection of 500+ titles.</p>
+            <div class="reg-steps animate-fade-up">
+                <div class="reg-step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Fill in your personal details</div>
                 </div>
-                <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" name="name" class="form-control" required>
+                <div class="reg-step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Wait for admin approval</div>
+                </div>
+                <div class="reg-step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">Start borrowing books!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="reg-right">
+        <div class="reg-form-wrap">
+            <h2>Create Account</h2>
+            <p class="reg-subtitle">Register as a library member — it's free!</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for category, message in messages %}
+            <div class="alert alert-{{ category }} animate-slide-down mb-3">{{ message }}</div>
+            {% endfor %}{% endif %}{% endwith %}
+
+            <form method="POST" id="registerForm">
+                <div class="form-grid">
+                    <!-- Full name -->
+                    <div class="field-group full">
+                        <label>Full Name <span>*</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-person input-icon"></i>
+                            <input type="text" name="name" placeholder="Your full name" required />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" name="email" class="form-control" required>
+
+                    <!-- Email -->
+                    <div class="field-group full">
+                        <label>Email Address <span>*</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-envelope input-icon"></i>
+                            <input type="email" name="email" placeholder="you@example.com" required />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Phone Number</label>
-                        <input type="text" name="phone" class="form-control">
+
+                    <!-- Phone -->
+                    <div class="field-group">
+                        <label>Phone Number</label>
+                        <div class="input-wrap">
+                            <i class="bi bi-phone input-icon"></i>
+                            <input type="text" name="phone" placeholder="e.g. 1234567890" />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea name="address" class="form-control" rows="2"></textarea>
+
+                    <!-- Address -->
+                    <div class="field-group">
+                        <label>Address</label>
+                        <div class="input-wrap">
+                            <i class="bi bi-geo-alt input-icon textarea-icon"></i>
+                            <textarea name="address" placeholder="Your address"></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
+
+                    <!-- Password -->
+                    <div class="field-group">
+                        <label>Password <span>*</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-lock input-icon"></i>
+                            <input type="password" name="password" id="pw1"
+                                   placeholder="Min. 6 characters" required
+                                   oninput="checkStrength(this.value)" />
+                        </div>
+                        <div class="pw-strength" id="pwStrength"></div>
+                        <div class="pw-hint" id="pwHint">Enter a password</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Confirm Password</label>
-                        <input type="password" name="confirm_password" class="form-control" required>
+
+                    <!-- Confirm password -->
+                    <div class="field-group">
+                        <label>Confirm Password <span>*</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-lock-fill input-icon"></i>
+                            <input type="password" name="confirm_password" id="pw2"
+                                   placeholder="Repeat password" required
+                                   oninput="checkMatch()" />
+                        </div>
+                        <div class="pw-hint" id="matchHint"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Register</button>
-                </form>
-                <hr>
-                <p class="text-center small mb-0">
-                    Already have an account?
-                    <a href="{{ url_for('auth.login') }}">Login here</a>
-                </p>
+                </div>
+
+                <button type="submit" class="btn-register" id="regBtn">
+                    <span id="regBtnText">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </span>
+                    <span class="spinner" id="regSpinner"></span>
+                </button>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="{{ url_for('auth.login') }}">Sign in here</a>
+            </div>
+            <div class="terms-note">
+                By registering, your account will be reviewed by a library admin before activation.
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Particles
+(function() {
+    const c = document.getElementById('regParticles');
+    if (!c) return;
+    for (let i = 0; i < 14; i++) {
+        const p = document.createElement('div');
+        p.className = 'reg-particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (8 + Math.random() * 10) + 's';
+        p.style.animationDelay = (Math.random() * 8) + 's';
+        c.appendChild(p);
+    }
+})();
+
+// Password strength
+function checkStrength(val) {
+    const bar = document.getElementById('pwStrength');
+    const hint = document.getElementById('pwHint');
+    if (!val) { bar.style.width = '0'; hint.textContent = 'Enter a password'; hint.style.color = '#aaa'; return; }
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const levels = [
+        { w:'20%', c:'#ef4444', t:'Too weak' },
+        { w:'40%', c:'#f59e0b', t:'Weak' },
+        { w:'60%', c:'#f59e0b', t:'Fair' },
+        { w:'80%', c:'#10b981', t:'Strong' },
+        { w:'100%', c:'#10b981', t:'Very strong' },
+    ];
+    const l = levels[Math.min(score, 4)];
+    bar.style.width = l.w;
+    bar.style.background = l.c;
+    hint.textContent = l.t;
+    hint.style.color = l.c;
+}
+
+// Password match
+function checkMatch() {
+    const p1 = document.getElementById('pw1').value;
+    const p2 = document.getElementById('pw2').value;
+    const hint = document.getElementById('matchHint');
+    if (!p2) { hint.textContent = ''; return; }
+    if (p1 === p2) { hint.textContent = '✓ Passwords match'; hint.style.color = '#10b981'; }
+    else { hint.textContent = '✗ Passwords do not match'; hint.style.color = '#ef4444'; }
+}
+
+// Loading spinner on submit
+document.getElementById('registerForm').addEventListener('submit', function() {
+    document.getElementById('regBtnText').style.display = 'none';
+    document.getElementById('regSpinner').style.display = 'inline-block';
+});
+</script>
+
 {% endblock %}
