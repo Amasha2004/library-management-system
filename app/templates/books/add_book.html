@@ -2,46 +2,259 @@
 {% block title %}Add Book — LibraryMS{% endblock %}
 {% block page_title %}Add New Book{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <i class="bi bi-plus-circle"></i> Add New Book
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+.add-wrap {
+    max-width:800px; margin:0 auto;
+    animation:fadeUp 0.5s ease both;
+}
+
+/* Header */
+.page-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:24px;
+}
+.page-title {
+    font-family:'Playfair Display',serif;
+    font-size:26px; font-weight:700; color:#1a1a2e;
+}
+.page-sub { font-size:13px; color:#aaa; margin-top:2px; }
+
+/* Form card */
+.form-card {
+    background:#fff; border-radius:20px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.08);
+    overflow:hidden;
+}
+.form-card-header {
+    background:linear-gradient(135deg,#1a237e,#283593);
+    padding:24px 28px; display:flex; align-items:center; gap:14px;
+}
+.form-header-icon {
+    width:48px; height:48px; background:rgba(255,255,255,0.15);
+    border-radius:12px; display:flex; align-items:center;
+    justify-content:center; font-size:24px;
+}
+.form-header-title {
+    font-family:'Playfair Display',serif;
+    font-size:20px; font-weight:700; color:#fff;
+}
+.form-header-sub { font-size:13px; color:rgba(255,255,255,0.7); margin-top:2px; }
+.form-card-body { padding:28px; }
+
+/* Form grid */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.form-grid .full { grid-column:1/-1; }
+.field-group { }
+.field-label {
+    font-size:12px; font-weight:600; color:#555;
+    display:block; margin-bottom:6px; letter-spacing:0.3px;
+}
+.field-label span { color:#ef4444; }
+.field-required { color:#ef4444; }
+.input-wrap { position:relative; }
+.input-wrap input,
+.input-wrap select,
+.input-wrap textarea {
+    width:100%; padding:11px 14px 11px 40px;
+    border:1.5px solid #e8eaf0; border-radius:10px;
+    font-size:14px; outline:none; transition:all 0.2s;
+    background:#fafafa; color:#333; font-family:inherit;
+}
+.input-wrap select { padding-left:40px; cursor:pointer; }
+.input-wrap input:focus,
+.input-wrap select:focus,
+.input-wrap textarea:focus {
+    border-color:#6366f1; background:#fff;
+    box-shadow:0 0 0 3px rgba(99,102,241,0.1);
+}
+.input-icon {
+    position:absolute; left:13px; top:50%;
+    transform:translateY(-50%); color:#aaa; font-size:15px;
+    pointer-events:none;
+}
+
+/* File upload */
+.file-upload-wrap {
+    border:2px dashed #e0e0ff; border-radius:12px;
+    padding:24px; text-align:center; cursor:pointer;
+    transition:all 0.2s; background:#fafaff; position:relative;
+}
+.file-upload-wrap:hover { border-color:#6366f1; background:#f0f0ff; }
+.file-upload-wrap input[type="file"] {
+    position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+}
+.file-upload-icon { font-size:32px; margin-bottom:8px; }
+.file-upload-text { font-size:13px; color:#666; }
+.file-upload-hint { font-size:11px; color:#aaa; margin-top:4px; }
+
+/* Preview */
+.cover-preview {
+    display:none; margin-top:12px;
+    border-radius:10px; overflow:hidden;
+    width:80px; height:110px; margin:12px auto 0;
+}
+.cover-preview img { width:100%; height:100%; object-fit:cover; }
+
+/* Category hint */
+.category-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.cat-chip {
+    padding:4px 12px; border-radius:20px; font-size:11px;
+    background:#f0f0ff; color:#6366f1; border:1px solid #e0e0ff;
+    cursor:pointer; transition:all 0.2s;
+}
+.cat-chip:hover { background:#e0e0ff; }
+
+/* Form actions */
+.form-actions {
+    display:flex; gap:12px; padding-top:20px;
+    border-top:1px solid #f0f0f0; margin-top:8px;
+}
+.btn-submit {
+    flex:1; padding:12px; border:none; border-radius:10px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff; font-size:14px; font-weight:700;
+    cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 4px 14px rgba(99,102,241,0.4);
+}
+.btn-submit:hover { opacity:0.9; transform:translateY(-2px); }
+.btn-cancel {
+    padding:12px 24px; border-radius:10px;
+    background:#f5f5f5; color:#666;
+    border:1.5px solid #e0e0e0;
+    font-size:14px; font-weight:600;
+    text-decoration:none; transition:all 0.2s;
+    display:flex; align-items:center; gap:6px;
+}
+.btn-cancel:hover { background:#e0e0e0; color:#333; }
+</style>
+
+<div class="add-wrap">
+    <div class="page-header">
+        <div>
+            <div class="page-title">Add New Book</div>
+            <div class="page-sub">Add a new book to the library catalog</div>
+        </div>
+        <a href="{{ url_for('books.book_list') }}" class="btn-cancel">
+            ← Back to Catalog
+        </a>
+    </div>
+
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-header-icon">📖</div>
+            <div>
+                <div class="form-header-title">Book Information</div>
+                <div class="form-header-sub">Fill in the details below to add a new book</div>
             </div>
-            <div class="card-body p-4">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label class="form-label">Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="form-card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-grid">
+
+                    <!-- Title -->
+                    <div class="field-group full">
+                        <label class="field-label">Book Title <span>*</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-book input-icon"></i>
+                            <input type="text" name="title" placeholder="e.g. The Great Gatsby" required />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Author <span class="text-danger">*</span></label>
-                        <input type="text" name="author" class="form-control" required>
+
+                    <!-- Author -->
+                    <div class="field-group">
+                        <label class="field-label">Author <span>*</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-person input-icon"></i>
+                            <input type="text" name="author" placeholder="e.g. F. Scott Fitzgerald" required />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">ISBN <span class="text-danger">*</span></label>
-                        <input type="text" name="isbn" class="form-control" required>
+
+                    <!-- ISBN -->
+                    <div class="field-group">
+                        <label class="field-label">ISBN <span>*</span></label>
+                        <div class="input-wrap">
+                            <i class="bi bi-upc input-icon"></i>
+                            <input type="text" name="isbn" placeholder="e.g. 978-0743273565" required />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <input type="text" name="category" class="form-control"
-                               placeholder="e.g. Science, History, Fiction">
+
+                    <!-- Category -->
+                    <div class="field-group full">
+                        <label class="field-label">Category</label>
+                        <div class="input-wrap">
+                            <i class="bi bi-tag input-icon"></i>
+                            <input type="text" name="category" id="categoryInput"
+                                   placeholder="e.g. Fiction, Technology, Science..." />
+                        </div>
+                        <div class="category-chips">
+                            <span class="cat-chip" onclick="setCategory('Fiction')">📖 Fiction</span>
+                            <span class="cat-chip" onclick="setCategory('Technology')">💻 Technology</span>
+                            <span class="cat-chip" onclick="setCategory('Science')">🔬 Science</span>
+                            <span class="cat-chip" onclick="setCategory('History')">🏛️ History</span>
+                            <span class="cat-chip" onclick="setCategory('Philosophy')">🧠 Philosophy</span>
+                            <span class="cat-chip" onclick="setCategory('Business')">📈 Business</span>
+                            <span class="cat-chip" onclick="setCategory('Dystopian')">🌑 Dystopian</span>
+                            <span class="cat-chip" onclick="setCategory('Science Fiction')">🚀 Sci-Fi</span>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Cover Image</label>
-                        <input type="file" name="cover_image" class="form-control" accept="image/*">
+
+                    <!-- Cover image -->
+                    <div class="field-group full">
+                        <label class="field-label">Cover Image <span style="color:#aaa;font-weight:400">(optional)</span></label>
+                        <div class="file-upload-wrap" id="uploadWrap">
+                            <input type="file" name="cover_image" id="coverInput"
+                                   accept="image/*" onchange="previewImage(this)" />
+                            <div class="file-upload-icon">🖼️</div>
+                            <div class="file-upload-text">Click to upload or drag & drop</div>
+                            <div class="file-upload-hint">PNG, JPG, GIF up to 2MB</div>
+                        </div>
+                        <div class="cover-preview" id="coverPreview">
+                            <img id="previewImg" src="" alt="Preview" />
+                        </div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> Add Book
-                        </button>
-                        <a href="{{ url_for('books.book_list') }}" class="btn btn-outline-secondary">
-                            Cancel
-                        </a>
-                    </div>
-                </form>
-            </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-plus-circle"></i> Add Book to Catalog
+                    </button>
+                    <a href="{{ url_for('books.book_list') }}" class="btn-cancel">
+                        Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+function setCategory(cat) {
+    document.getElementById('categoryInput').value = cat;
+    document.querySelectorAll('.cat-chip').forEach(c => c.style.background = '');
+    event.target.style.background = '#e0e0ff';
+}
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('coverPreview').style.display = 'block';
+            document.querySelector('.file-upload-text').textContent = input.files[0].name;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
 {% endblock %}

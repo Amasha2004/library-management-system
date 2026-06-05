@@ -2,59 +2,231 @@
 {% block title %}Reports — LibraryMS{% endblock %}
 {% block page_title %}Reports{% endblock %}
 {% block content %}
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body text-center p-4">
-                <i class="bi bi-trophy text-warning" style="font-size:3rem"></i>
-                <h5 class="mt-3 fw-bold">Most Borrowed Books</h5>
-                <p class="text-muted small">See which books are most popular among members.</p>
-                <div class="d-grid gap-2 mt-3">
-                    <a href="{{ url_for('reports.most_borrowed') }}" class="btn btn-primary">
-                        <i class="bi bi-eye"></i> View Report
-                    </a>
-                    <a href="{{ url_for('reports.export_most_borrowed') }}" class="btn btn-outline-success">
-                        <i class="bi bi-download"></i> Export CSV
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body text-center p-4">
-                <i class="bi bi-person-x text-danger" style="font-size:3rem"></i>
-                <h5 class="mt-3 fw-bold">Overdue Members</h5>
-                <p class="text-muted small">Members with overdue books and outstanding fines.</p>
-                <div class="d-grid gap-2 mt-3">
-                    <a href="{{ url_for('reports.overdue_members') }}" class="btn btn-primary">
-                        <i class="bi bi-eye"></i> View Report
-                    </a>
-                    <a href="{{ url_for('reports.export_overdue') }}" class="btn btn-outline-success">
-                        <i class="bi bi-download"></i> Export CSV
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
 
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body text-center p-4">
-                <i class="bi bi-calendar-check text-info" style="font-size:3rem"></i>
-                <h5 class="mt-3 fw-bold">Daily Transactions</h5>
-                <p class="text-muted small">All borrows and returns for a specific date.</p>
-                <div class="d-grid gap-2 mt-3">
-                    <a href="{{ url_for('reports.daily_transactions') }}" class="btn btn-primary">
-                        <i class="bi bi-eye"></i> View Report
-                    </a>
-                    <a href="{{ url_for('reports.export_daily') }}" class="btn btn-outline-success">
-                        <i class="bi bi-download"></i> Export CSV
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+/* Header banner */
+.reports-banner {
+    background:linear-gradient(135deg,#1a237e,#283593,#1565c0);
+    border-radius:20px; padding:28px 32px;
+    margin-bottom:28px; position:relative; overflow:hidden;
+    animation:fadeUp 0.5s ease both;
+}
+.reports-banner::before {
+    content:'📊'; position:absolute; right:32px; top:50%;
+    transform:translateY(-50%); font-size:90px; opacity:0.1;
+}
+.banner-title {
+    font-family:'Playfair Display',serif;
+    font-size:26px; font-weight:700; color:#fff; margin-bottom:6px;
+}
+.banner-sub { font-size:14px; color:rgba(255,255,255,0.7); }
+
+/* Section title */
+.section-title {
+    font-family:'Playfair Display',serif;
+    font-size:18px; font-weight:700; color:#1a1a2e;
+    margin-bottom:16px; display:flex; align-items:center; gap:8px;
+}
+.section-title::after {
+    content:''; flex:1; height:1px; background:#e8eaf0; margin-left:8px;
+}
+
+/* Report cards */
+.reports-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.report-card {
+    background:#fff; border-radius:18px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    overflow:hidden; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    animation:fadeUp 0.5s ease both;
+}
+.report-card:hover { transform:translateY(-8px); box-shadow:0 20px 40px rgba(0,0,0,0.12); }
+.report-card:nth-child(1) { animation-delay:0.05s; }
+.report-card:nth-child(2) { animation-delay:0.10s; }
+.report-card:nth-child(3) { animation-delay:0.15s; }
+
+/* Card header */
+.report-card-header {
+    padding:28px 24px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+}
+.rc-header-1 { background:linear-gradient(135deg,#6366f1,#8b5cf6); }
+.rc-header-2 { background:linear-gradient(135deg,#ef4444,#dc2626); }
+.rc-header-3 { background:linear-gradient(135deg,#10b981,#059669); }
+.report-bg-icon {
+    position:absolute; right:-10px; bottom:-10px;
+    font-size:80px; opacity:0.12;
+}
+.report-icon {
+    font-size:42px; margin-bottom:10px; position:relative; z-index:1;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+.report-card-title {
+    font-family:'Playfair Display',serif;
+    font-size:18px; font-weight:700; color:#fff;
+    margin-bottom:4px; position:relative; z-index:1;
+}
+.report-card-sub {
+    font-size:12px; color:rgba(255,255,255,0.75);
+    position:relative; z-index:1; line-height:1.5;
+}
+
+/* Card body */
+.report-card-body { padding:20px 24px; }
+.report-features { margin-bottom:18px; }
+.report-feature {
+    display:flex; align-items:center; gap:8px;
+    font-size:13px; color:#555; margin-bottom:8px;
+}
+.feature-dot {
+    width:6px; height:6px; border-radius:50%; flex-shrink:0;
+}
+.fd-purple { background:#6366f1; }
+.fd-red    { background:#ef4444; }
+.fd-green  { background:#10b981; }
+
+/* Buttons */
+.report-btns { display:flex; flex-direction:column; gap:8px; }
+.btn-view-report {
+    width:100%; padding:10px; border:none; border-radius:10px;
+    font-size:13px; font-weight:600; cursor:pointer;
+    transition:all 0.2s; text-decoration:none; text-align:center;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.bvr-1 { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; box-shadow:0 4px 12px rgba(99,102,241,0.3); }
+.bvr-2 { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; box-shadow:0 4px 12px rgba(239,68,68,0.3); }
+.bvr-3 { background:linear-gradient(135deg,#10b981,#059669); color:#fff; box-shadow:0 4px 12px rgba(16,185,129,0.3); }
+.btn-view-report:hover { opacity:0.9; transform:translateY(-2px); color:#fff; }
+
+.btn-export-report {
+    width:100%; padding:9px; border-radius:10px;
+    font-size:12px; font-weight:600; cursor:pointer;
+    transition:all 0.2s; text-decoration:none; text-align:center;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    background:#f8f9ff; color:#6366f1;
+    border:1.5px solid #e0e0ff;
+}
+.btn-export-report:hover { background:#f0f0ff; color:#6366f1; }
+</style>
+
+<!-- Banner -->
+<div class="reports-banner">
+    <div class="banner-title">Library Analytics & Reports</div>
+    <div class="banner-sub">Generate insights and export data from your library operations</div>
 </div>
+
+<div class="section-title">Available Reports</div>
+
+<div class="reports-grid">
+
+    <!-- Most Borrowed -->
+    <div class="report-card">
+        <div class="report-card-header rc-header-1">
+            <div class="report-bg-icon">🏆</div>
+            <div class="report-icon">🏆</div>
+            <div class="report-card-title">Most Borrowed Books</div>
+            <div class="report-card-sub">Discover which books are most popular among library members</div>
+        </div>
+        <div class="report-card-body">
+            <div class="report-features">
+                <div class="report-feature">
+                    <div class="feature-dot fd-purple"></div>
+                    Top 20 most borrowed titles
+                </div>
+                <div class="report-feature">
+                    <div class="feature-dot fd-purple"></div>
+                    Sorted by borrow count
+                </div>
+                <div class="report-feature">
+                    <div class="feature-dot fd-purple"></div>
+                    Export to CSV
+                </div>
+            </div>
+            <div class="report-btns">
+                <a href="{{ url_for('reports.most_borrowed') }}" class="btn-view-report bvr-1">
+                    📊 View Report
+                </a>
+                <a href="{{ url_for('reports.export_most_borrowed') }}" class="btn-export-report">
+                    ⬇️ Export CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Members -->
+    <div class="report-card">
+        <div class="report-card-header rc-header-2">
+            <div class="report-bg-icon">⚠️</div>
+            <div class="report-icon">⚠️</div>
+            <div class="report-card-title">Overdue Members</div>
+            <div class="report-card-sub">Members with overdue books and outstanding unpaid fines</div>
+        </div>
+        <div class="report-card-body">
+            <div class="report-features">
+                <div class="report-feature">
+                    <div class="feature-dot fd-red"></div>
+                    All overdue members listed
+                </div>
+                <div class="report-feature">
+                    <div class="feature-dot fd-red"></div>
+                    Days overdue + fine amount
+                </div>
+                <div class="report-feature">
+                    <div class="feature-dot fd-red"></div>
+                    Export to CSV
+                </div>
+            </div>
+            <div class="report-btns">
+                <a href="{{ url_for('reports.overdue_members') }}" class="btn-view-report bvr-2">
+                    📋 View Report
+                </a>
+                <a href="{{ url_for('reports.export_overdue') }}" class="btn-export-report">
+                    ⬇️ Export CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Transactions -->
+    <div class="report-card">
+        <div class="report-card-header rc-header-3">
+            <div class="report-bg-icon">📅</div>
+            <div class="report-icon">📅</div>
+            <div class="report-card-title">Daily Transactions</div>
+            <div class="report-card-sub">All borrows and returns for any specific date</div>
+        </div>
+        <div class="report-card-body">
+            <div class="report-features">
+                <div class="report-feature">
+                    <div class="feature-dot fd-green"></div>
+                    Select any date to view
+                </div>
+                <div class="report-feature">
+                    <div class="feature-dot fd-green"></div>
+                    Borrowed + returned summary
+                </div>
+                <div class="report-feature">
+                    <div class="feature-dot fd-green"></div>
+                    Export to CSV
+                </div>
+            </div>
+            <div class="report-btns">
+                <a href="{{ url_for('reports.daily_transactions') }}" class="btn-view-report bvr-3">
+                    📆 View Report
+                </a>
+                <a href="{{ url_for('reports.export_daily') }}" class="btn-export-report">
+                    ⬇️ Export CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 {% endblock %}

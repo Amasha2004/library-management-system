@@ -1,72 +1,231 @@
 {% extends "base.html" %}
 {% block title %}Members — LibraryMS{% endblock %}
-{% block page_title %}All Members{% endblock %}
+{% block page_title %}Members{% endblock %}
 {% block content %}
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <input type="text" name="q" class="form-control"
-                       placeholder="Search by name or email..." value="{{ query }}">
-            </div>
-            <div class="col-md-3">
-                <select name="status" class="form-select">
-                    <option value="">All Statuses</option>
-                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
-                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search"></i> Search
-                </button>
-            </div>
-        </form>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+.page-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:24px; animation:fadeUp 0.5s ease both;
+}
+.page-title {
+    font-family:'Playfair Display',serif;
+    font-size:26px; font-weight:700; color:#1a1a2e;
+}
+.page-sub { font-size:13px; color:#aaa; margin-top:2px; }
+
+/* Filter bar */
+.filter-bar {
+    background:#fff; border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    padding:16px 20px; margin-bottom:16px;
+    display:flex; gap:12px; align-items:center;
+    animation:fadeUp 0.5s ease 0.05s both;
+}
+.filter-input-wrap { position:relative; flex:1; }
+.filter-input-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#aaa; font-size:14px; }
+.filter-bar input {
+    width:100%; padding:9px 14px 9px 38px;
+    border:1.5px solid #e8eaf0; border-radius:10px;
+    font-size:13px; outline:none; transition:all 0.2s; background:#fafafa;
+}
+.filter-bar input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.1); background:#fff; }
+.filter-bar select {
+    padding:9px 14px; border:1.5px solid #e8eaf0;
+    border-radius:10px; font-size:13px; outline:none;
+    background:#fafafa; min-width:150px; cursor:pointer;
+}
+.btn-filter {
+    padding:9px 20px; background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff; border:none; border-radius:10px;
+    font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;
+}
+.btn-filter:hover { opacity:0.9; transform:translateY(-1px); }
+
+/* Status chips */
+.status-chips { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.status-chip {
+    padding:5px 14px; border-radius:20px; font-size:12px; font-weight:500;
+    border:1.5px solid #e0e0e0; background:#fff; color:#666;
+    cursor:pointer; text-decoration:none; transition:all 0.2s;
+}
+.status-chip:hover { border-color:#6366f1; color:#6366f1; }
+.status-chip.sc-all    { }
+.status-chip.sc-active.active-chip   { background:linear-gradient(135deg,#10b981,#059669); border-color:transparent; color:#fff; }
+.status-chip.sc-pending.active-chip  { background:linear-gradient(135deg,#f59e0b,#d97706); border-color:transparent; color:#fff; }
+.status-chip.sc-rejected.active-chip { background:linear-gradient(135deg,#ef4444,#dc2626); border-color:transparent; color:#fff; }
+.status-chip.active-chip             { background:linear-gradient(135deg,#6366f1,#8b5cf6); border-color:transparent; color:#fff; }
+
+/* Members grid */
+.members-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+    gap:16px;
+}
+.member-card {
+    background:#fff; border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    padding:20px; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    animation:fadeUp 0.5s ease both; position:relative; overflow:hidden;
+}
+.member-card:hover { transform:translateY(-5px); box-shadow:0 12px 28px rgba(0,0,0,0.12); }
+.member-card-top { height:4px; position:absolute; top:0; left:0; right:0; }
+.mct-active   { background:linear-gradient(90deg,#10b981,#34d399); }
+.mct-pending  { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+.mct-rejected { background:linear-gradient(90deg,#ef4444,#f87171); }
+
+.member-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.member-avatar {
+    width:48px; height:48px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.member-info-name { font-size:15px; font-weight:700; color:#1a1a2e; }
+.member-info-email { font-size:12px; color:#aaa; margin-top:2px; }
+
+.member-details { margin-bottom:14px; }
+.member-detail-row {
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; color:#666; margin-bottom:6px;
+}
+.member-detail-row i { color:#aaa; width:14px; }
+
+.member-card-footer {
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:12px; border-top:1px solid #f5f5f5;
+}
+.status-pill {
+    padding:4px 12px; border-radius:20px;
+    font-size:11px; font-weight:700; letter-spacing:0.5px;
+}
+.sp-active   { background:#dcfce7; color:#16a34a; }
+.sp-pending  { background:#fef9c3; color:#ca8a04; }
+.sp-rejected { background:#fee2e2; color:#dc2626; }
+
+.card-actions { display:flex; gap:6px; }
+.btn-view-member {
+    padding:6px 12px; background:#f0f0ff;
+    border:1.5px solid #e0e0ff; color:#6366f1;
+    border-radius:8px; font-size:12px; font-weight:600;
+    text-decoration:none; transition:all 0.2s;
+}
+.btn-view-member:hover { background:#e0e0ff; color:#6366f1; }
+.btn-del-member {
+    padding:6px 10px; background:#fff0f0;
+    border:1.5px solid #fecaca; color:#ef4444;
+    border-radius:8px; font-size:12px; cursor:pointer;
+    transition:all 0.2s;
+}
+.btn-del-member:hover { background:#fee2e2; }
+
+/* Empty state */
+.empty-state {
+    text-align:center; padding:60px 20px;
+    background:#fff; border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    grid-column:1/-1;
+}
+.empty-icon { font-size:48px; display:block; margin-bottom:12px; opacity:0.3; }
+</style>
+
+<!-- Header -->
+<div class="page-header">
+    <div>
+        <div class="page-title">Member Management</div>
+        <div class="page-sub">{{ members|length }} member{{ 's' if members|length != 1 }} found</div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-                {% for m in members %}
-                <tr>
-                    <td>{{ m.name }}</td>
-                    <td>{{ m.email }}</td>
-                    <td>{{ m.phone or '—' }}</td>
-                    <td>
-                        <span class="badge
-                            {% if m.status == 'active' %}bg-success
-                            {% elif m.status == 'pending' %}bg-warning text-dark
-                            {% else %}bg-danger{% endif %}">
-                            {{ m.status|capitalize }}
-                        </span>
-                    </td>
-                    <td>{{ m.created_at.strftime('%Y-%m-%d') }}</td>
-                    <td>
-                        <a href="{{ url_for('members.member_detail', user_id=m.id) }}"
-                           class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        <form method="POST"
-                              action="{{ url_for('members.delete_member', user_id=m.id) }}"
-                              style="display:inline"
-                              onsubmit="return confirm('Delete this member?')">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="6" class="text-center text-muted py-4">No members found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<!-- Filter -->
+<form method="GET" class="filter-bar">
+    <div class="filter-input-wrap">
+        <i class="bi bi-search filter-input-icon"></i>
+        <input type="text" name="q" placeholder="Search by name or email..." value="{{ query }}" />
     </div>
+    <select name="status">
+        <option value="">All Statuses</option>
+        <option value="active"   {% if status_filter=='active'   %}selected{% endif %}>Active</option>
+        <option value="pending"  {% if status_filter=='pending'  %}selected{% endif %}>Pending</option>
+        <option value="rejected" {% if status_filter=='rejected' %}selected{% endif %}>Rejected</option>
+    </select>
+    <button type="submit" class="btn-filter">
+        <i class="bi bi-search"></i> Search
+    </button>
+</form>
+
+<!-- Status chips -->
+<div class="status-chips">
+    <a href="{{ url_for('members.member_list') }}"
+       class="status-chip {% if not status_filter %}active-chip{% endif %}">All</a>
+    <a href="{{ url_for('members.member_list', status='active') }}"
+       class="status-chip sc-active {% if status_filter=='active' %}active-chip{% endif %}">✅ Active</a>
+    <a href="{{ url_for('members.member_list', status='pending') }}"
+       class="status-chip sc-pending {% if status_filter=='pending' %}active-chip{% endif %}">⏳ Pending</a>
+    <a href="{{ url_for('members.member_list', status='rejected') }}"
+       class="status-chip sc-rejected {% if status_filter=='rejected' %}active-chip{% endif %}">❌ Rejected</a>
 </div>
+
+<!-- Members grid -->
+<div class="members-grid">
+    {% for m in members %}
+    <div class="member-card" style="animation-delay:{{ loop.index0 * 0.04 }}s">
+        <div class="member-card-top mct-{{ m.status }}"></div>
+        <div class="member-card-header">
+            <div class="member-avatar"
+                 style="background:{{ ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'][loop.index0 % 5] }}">
+                {{ m.name[0].upper() }}
+            </div>
+            <div>
+                <div class="member-info-name">{{ m.name }}</div>
+                <div class="member-info-email">{{ m.email }}</div>
+            </div>
+        </div>
+        <div class="member-details">
+            {% if m.phone %}
+            <div class="member-detail-row">
+                <i class="bi bi-telephone"></i> {{ m.phone }}
+            </div>
+            {% endif %}
+            {% if m.address %}
+            <div class="member-detail-row">
+                <i class="bi bi-geo-alt"></i> {{ m.address[:40] }}{% if m.address|length > 40 %}...{% endif %}
+            </div>
+            {% endif %}
+            <div class="member-detail-row">
+                <i class="bi bi-calendar3"></i> Joined {{ m.created_at.strftime('%Y-%m-%d') }}
+            </div>
+        </div>
+        <div class="member-card-footer">
+            <span class="status-pill sp-{{ m.status }}">
+                {{ m.status|capitalize }}
+            </span>
+            <div class="card-actions">
+                <a href="{{ url_for('members.member_detail', user_id=m.id) }}"
+                   class="btn-view-member">View</a>
+                <form method="POST"
+                      action="{{ url_for('members.delete_member', user_id=m.id) }}"
+                      style="margin:0"
+                      onsubmit="return confirm('Delete this member?')">
+                    <button type="submit" class="btn-del-member">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="empty-icon">👥</span>
+        <p style="color:#aaa;font-size:14px">No members found</p>
+    </div>
+    {% endfor %}
+</div>
+
 {% endblock %}

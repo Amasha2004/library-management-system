@@ -1,65 +1,307 @@
 {% extends "base.html" %}
-{% block title %}Librarian Dashboard{% endblock %}
+{% block title %}Librarian Dashboard — LibraryMS{% endblock %}
 {% block page_title %}Librarian Dashboard{% endblock %}
 {% block content %}
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card stat-card blue p-3">
-            <div class="text-muted small">Total Books</div>
-            <div class="fs-2 fw-bold text-primary">{{ total_books }}</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+/* Welcome banner */
+.welcome-banner {
+    background:linear-gradient(135deg,#1a237e,#283593,#1565c0);
+    border-radius:20px; padding:28px 32px;
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:24px; position:relative; overflow:hidden;
+    animation:fadeUp 0.5s ease both;
+}
+.welcome-banner::before {
+    content:'📚'; position:absolute; right:32px; top:50%;
+    transform:translateY(-50%); font-size:90px; opacity:0.1;
+}
+.welcome-title {
+    font-family:'Playfair Display',serif;
+    font-size:24px; font-weight:700; color:#fff; margin-bottom:6px;
+}
+.welcome-sub { font-size:14px; color:rgba(255,255,255,0.7); }
+.welcome-date {
+    text-align:right; position:relative; z-index:1;
+    background:rgba(255,255,255,0.1); border-radius:12px;
+    padding:12px 20px; backdrop-filter:blur(8px);
+}
+.welcome-date-day { font-size:32px; font-weight:700; color:#fff; line-height:1; }
+.welcome-date-month { font-size:12px; color:rgba(255,255,255,0.6); margin-top:4px; text-transform:uppercase; letter-spacing:1px; }
+
+/* Stat cards */
+.stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+.stat-card {
+    background:#fff; border-radius:14px; padding:18px 20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    display:flex; align-items:center; gap:14px;
+    transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    animation:fadeUp 0.5s ease both; position:relative; overflow:hidden;
+}
+.stat-card:hover { transform:translateY(-5px); box-shadow:0 10px 24px rgba(0,0,0,0.1); }
+.stat-card:nth-child(1) { animation-delay:0.05s; }
+.stat-card:nth-child(2) { animation-delay:0.10s; }
+.stat-card:nth-child(3) { animation-delay:0.15s; }
+.stat-card:nth-child(4) { animation-delay:0.20s; }
+.stat-card-accent {
+    position:absolute; top:0; left:0; bottom:0; width:4px; border-radius:4px 0 0 4px;
+}
+.sca-blue   { background:linear-gradient(180deg,#6366f1,#8b5cf6); }
+.sca-green  { background:linear-gradient(180deg,#10b981,#059669); }
+.sca-amber  { background:linear-gradient(180deg,#f59e0b,#d97706); }
+.sca-red    { background:linear-gradient(180deg,#ef4444,#dc2626); }
+.stat-icon {
+    width:46px; height:46px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;
+}
+.si-blue   { background:#f0f0ff; }
+.si-green  { background:#f0fdf4; }
+.si-amber  { background:#fffbeb; }
+.si-red    { background:#fff0f0; }
+.stat-val { font-size:28px; font-weight:700; color:#1a1a2e; line-height:1; }
+.stat-lbl { font-size:12px; color:#aaa; margin-top:3px; }
+
+/* Section title */
+.section-title {
+    font-family:'Playfair Display',serif;
+    font-size:18px; font-weight:700; color:#1a1a2e;
+    margin-bottom:16px; display:flex; align-items:center; gap:8px;
+}
+.section-title::after {
+    content:''; flex:1; height:1px; background:#e8eaf0; margin-left:8px;
+}
+
+/* Quick actions */
+.actions-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+.action-card {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 16px; border-radius:12px;
+    text-decoration:none; transition:all 0.2s;
+    border:1.5px solid transparent;
+    animation:fadeUp 0.5s ease both;
+}
+.action-card:nth-child(1) { animation-delay:0.1s; background:#f0f0ff; border-color:#e0e0ff; color:#6366f1; }
+.action-card:nth-child(2) { animation-delay:0.15s; background:#f0fdf4; border-color:#dcfce7; color:#16a34a; }
+.action-card:nth-child(3) { animation-delay:0.2s; background:#fffbeb; border-color:#fde68a; color:#92400e; }
+.action-card:nth-child(4) { animation-delay:0.25s; background:#fff0f0; border-color:#fecaca; color:#dc2626; }
+.action-card:nth-child(5) { animation-delay:0.3s; background:#f0f9ff; border-color:#bae6fd; color:#0284c7; }
+.action-card:nth-child(6) { animation-delay:0.35s; background:#fdf4ff; border-color:#e9d5ff; color:#9333ea; }
+.action-card:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.1); }
+.action-icon {
+    width:40px; height:40px; border-radius:10px;
+    background:rgba(255,255,255,0.8);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; flex-shrink:0;
+}
+.action-text { font-size:13px; font-weight:600; }
+.action-sub { font-size:11px; opacity:0.7; margin-top:1px; }
+
+/* Recent books table */
+.table-card {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    overflow:hidden; animation:fadeUp 0.5s ease 0.3s both;
+}
+.table-header {
+    padding:16px 20px; border-bottom:1px solid #f0f0f0;
+    display:flex; justify-content:space-between; align-items:center;
+}
+.table-header-title { font-size:15px; font-weight:700; color:#1a1a2e; }
+.btn-view-all {
+    font-size:12px; color:#6366f1; text-decoration:none;
+    font-weight:600; padding:4px 12px; border-radius:20px;
+    background:#f0f0ff; transition:all 0.2s;
+}
+.btn-view-all:hover { background:#e0e0ff; color:#6366f1; }
+.books-table { width:100%; border-collapse:collapse; }
+.books-table th {
+    padding:10px 16px; font-size:11px; font-weight:600;
+    letter-spacing:1px; text-transform:uppercase;
+    color:#aaa; background:#fafafa; text-align:left;
+}
+.books-table td {
+    padding:13px 16px; font-size:13px;
+    border-top:1px solid #f5f5f5; color:#333;
+    transition:background 0.15s;
+}
+.books-table tr:hover td { background:#fafaff; }
+.book-title-cell { font-weight:600; color:#1a1a2e; }
+.book-author-cell { font-size:12px; color:#aaa; margin-top:1px; }
+.status-pill {
+    padding:3px 10px; border-radius:20px;
+    font-size:11px; font-weight:700;
+}
+.sp-available { background:#dcfce7; color:#16a34a; }
+.sp-borrowed  { background:#fef9c3; color:#ca8a04; }
+.sp-reserved  { background:#e0e7ff; color:#4f46e5; }
+.btn-edit-book {
+    padding:5px 12px; background:#f0f0ff;
+    border:1.5px solid #e0e0ff; color:#6366f1;
+    border-radius:7px; font-size:11px; font-weight:600;
+    text-decoration:none; transition:all 0.2s;
+}
+.btn-edit-book:hover { background:#e0e0ff; color:#6366f1; }
+</style>
+
+<!-- Welcome banner -->
+<div class="welcome-banner">
+    <div>
+        <div class="welcome-title">Welcome back, {{ current_user.name.split()[0] }}! 👋</div>
+        <div class="welcome-sub">Here's your library overview for today</div>
+    </div>
+    <div class="welcome-date">
+        <div class="welcome-date-day" id="dateDay"></div>
+        <div class="welcome-date-month" id="dateMonth"></div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-card-accent sca-blue"></div>
+        <div class="stat-icon si-blue">📚</div>
+        <div>
+            <div class="stat-val">{{ total_books }}</div>
+            <div class="stat-lbl">Total Books</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card green p-3">
-            <div class="text-muted small">Available</div>
-            <div class="fs-2 fw-bold text-success">{{ available }}</div>
+    <div class="stat-card">
+        <div class="stat-card-accent sca-green"></div>
+        <div class="stat-icon si-green">✅</div>
+        <div>
+            <div class="stat-val">{{ available }}</div>
+            <div class="stat-lbl">Available</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card orange p-3">
-            <div class="text-muted small">Borrowed</div>
-            <div class="fs-2 fw-bold text-warning">{{ borrowed }}</div>
+    <div class="stat-card">
+        <div class="stat-card-accent sca-amber"></div>
+        <div class="stat-icon si-amber">📤</div>
+        <div>
+            <div class="stat-val">{{ borrowed }}</div>
+            <div class="stat-lbl">Borrowed</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card red p-3">
-            <div class="text-muted small">Active Loans</div>
-            <div class="fs-2 fw-bold text-danger">{{ active_loans }}</div>
+    <div class="stat-card">
+        <div class="stat-card-accent sca-red"></div>
+        <div class="stat-icon si-red">🔄</div>
+        <div>
+            <div class="stat-val">{{ active_loans }}</div>
+            <div class="stat-lbl">Active Loans</div>
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-clock-history"></i> Recently Added Books</span>
-        <a href="{{ url_for('books.add_book') }}" class="btn btn-sm btn-light">
-            <i class="bi bi-plus"></i> Add Book
-        </a>
-    </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr><th>Title</th><th>Author</th><th>Category</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-                {% for book in recent_books %}
-                <tr>
-                    <td><a href="{{ url_for('books.book_detail', book_id=book.id) }}">{{ book.title }}</a></td>
-                    <td>{{ book.author }}</td>
-                    <td>{{ book.category or '—' }}</td>
-                    <td>
-                        <span class="badge
-                            {% if book.status == 'available' %}bg-success
-                            {% elif book.status == 'borrowed' %}bg-warning text-dark
-                            {% else %}bg-secondary{% endif %}">
-                            {{ book.status|capitalize }}
-                        </span>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="4" class="text-center text-muted py-3">No books yet.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+
+<!-- Quick actions -->
+<div class="section-title">Quick Actions</div>
+<div class="actions-grid">
+    <a href="{{ url_for('books.add_book') }}" class="action-card">
+        <div class="action-icon">📖</div>
+        <div>
+            <div class="action-text">Add New Book</div>
+            <div class="action-sub">Expand catalog</div>
+        </div>
+    </a>
+    <a href="{{ url_for('books.book_list') }}" class="action-card">
+        <div class="action-icon">🔍</div>
+        <div>
+            <div class="action-text">Browse Books</div>
+            <div class="action-sub">Search catalog</div>
+        </div>
+    </a>
+    <a href="{{ url_for('loans.all_loans') }}" class="action-card">
+        <div class="action-icon">🔄</div>
+        <div>
+            <div class="action-text">Manage Loans</div>
+            <div class="action-sub">Process returns</div>
+        </div>
+    </a>
+    <a href="{{ url_for('loans.overdue_loans') }}" class="action-card">
+        <div class="action-icon">⚠️</div>
+        <div>
+            <div class="action-text">Overdue Books</div>
+            <div class="action-sub">Check late returns</div>
+        </div>
+    </a>
+    <a href="{{ url_for('loans.fines_list') }}" class="action-card">
+        <div class="action-icon">💰</div>
+        <div>
+            <div class="action-text">Manage Fines</div>
+            <div class="action-sub">Collect payments</div>
+        </div>
+    </a>
+    <a href="{{ url_for('loans.loan_history') }}" class="action-card">
+        <div class="action-icon">📋</div>
+        <div>
+            <div class="action-text">Loan History</div>
+            <div class="action-sub">View all records</div>
+        </div>
+    </a>
 </div>
+
+<!-- Recent books -->
+<div class="section-title">Recently Added Books</div>
+<div class="table-card">
+    <div class="table-header">
+        <div class="table-header-title">📚 Latest Additions</div>
+        <a href="{{ url_for('books.book_list') }}" class="btn-view-all">View All →</a>
+    </div>
+    <table class="books-table">
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Added</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in recent_books %}
+            <tr>
+                <td>
+                    <div class="book-title-cell">{{ book.title }}</div>
+                    <div class="book-author-cell">{{ book.author }}</div>
+                </td>
+                <td style="color:#666">{{ book.category or '—' }}</td>
+                <td>
+                    <span class="status-pill
+                        {% if book.status == 'available' %}sp-available
+                        {% elif book.status == 'borrowed' %}sp-borrowed
+                        {% else %}sp-reserved{% endif %}">
+                        {{ book.status|capitalize }}
+                    </span>
+                </td>
+                <td style="color:#aaa">{{ book.added_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <a href="{{ url_for('books.edit_book', book_id=book.id) }}"
+                       class="btn-edit-book">✏️ Edit</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center;padding:40px;color:#aaa">
+                    <span style="font-size:32px;display:block;margin-bottom:8px;opacity:0.3">📚</span>
+                    No books added yet
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+// Live date display
+const now = new Date();
+document.getElementById('dateDay').textContent = now.getDate();
+document.getElementById('dateMonth').textContent =
+    now.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+</script>
+
 {% endblock %}
