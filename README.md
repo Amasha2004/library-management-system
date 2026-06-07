@@ -34,6 +34,15 @@ A full-featured web-based library management system built with Python/Flask, SQL
 ### Book Catalog
 ![Books](docs/screenshots/books.png)
 
+### Book Detail
+![Book Detail](docs/screenshots/book_detail.png)
+
+### Member Dashboard
+![Member Dashboard](docs/screenshots/member_dashboard.png)
+
+### Reports
+![Reports](docs/screenshots/reports.png)
+
 ---
 
 ## 🚀 Quick Start
