@@ -26,22 +26,22 @@ A full-featured web-based library management system built with Python/Flask, SQL
 ## 🖥️ Screenshots
 
 ### Login Page
-![Login](docs/screenshots/login.png)
+![Login](C:\Users\1\Desktop\library-management-system\docs\screenshots\login.png)
 
 ### Admin Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
+![Dashboard](C:\Users\1\Desktop\library-management-system\docs\screenshots\dashboard.png)
 
 ### Book Catalog
-![Books](docs/screenshots/books.png)
+![Books](C:\Users\1\Desktop\library-management-system\docs\screenshots\books.png)
 
 ### Book Detail
-![Book Detail](docs/screenshots/book_detail.png)
+![Book Detail](C:\Users\1\Desktop\library-management-system\docs\screenshots\book_detail.png)
 
 ### Member Dashboard
-![Member Dashboard](docs/screenshots/member_dashboard.png)
+![Member Dashboard](C:\Users\1\Desktop\library-management-system\docs\screenshots\member_dashboard.png)
 
 ### Reports
-![Reports](docs/screenshots/reports.png)
+![Reports](C:\Users\1\Desktop\library-management-system\docs\screenshots\reports.png)
 
 ---
 
