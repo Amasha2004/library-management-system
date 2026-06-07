@@ -30,7 +30,6 @@ def login():
             flash('Invalid email or password. Please try again.', 'danger')
     return render_template('auth/login.html')
 
-
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -105,3 +104,36 @@ def create_admin():
         db.session.add(admin)
         db.session.commit()
         print('Admin account created: admin@library.com / admin123')
+
+@auth.route('/profile/edit', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        phone = request.form.get('phone')
+        address = request.form.get('address')
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        # Update basic info
+        current_user.name = name
+        current_user.phone = phone
+        current_user.address = address
+
+        # Update password if provided
+        if current_password and new_password:
+            if not bcrypt.check_password_hash(current_user.password, current_password):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('auth.edit_profile'))
+            if new_password != confirm_password:
+                flash('New passwords do not match.', 'danger')
+                return redirect(url_for('auth.edit_profile'))
+            current_user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            flash('Password updated successfully!', 'success')
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('auth.profile'))
+
+    return render_template('auth/edit_profile.html', user=current_user)

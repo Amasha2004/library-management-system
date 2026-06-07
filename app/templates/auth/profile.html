@@ -2,24 +2,171 @@
 {% block title %}Profile — LibraryMS{% endblock %}
 {% block page_title %}My Profile{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <i class="bi bi-person-circle"></i> Profile Information
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+.profile-wrap { max-width:700px; margin:0 auto; }
+
+/* Profile hero */
+.profile-hero {
+    background:linear-gradient(135deg,#1a237e,#283593,#1565c0);
+    border-radius:20px; padding:32px;
+    display:flex; align-items:center; gap:24px;
+    margin-bottom:24px; position:relative; overflow:hidden;
+    animation:fadeUp 0.5s ease both;
+}
+.profile-hero::before {
+    content:'👤'; position:absolute; right:32px; top:50%;
+    transform:translateY(-50%); font-size:90px; opacity:0.08;
+}
+.profile-avatar {
+    width:80px; height:80px; border-radius:20px;
+    background:rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:36px; font-weight:700; color:#fff; flex-shrink:0;
+    border:3px solid rgba(255,255,255,0.3);
+}
+.profile-hero-info { color:#fff; }
+.profile-name {
+    font-family:'Playfair Display',serif;
+    font-size:24px; font-weight:700; margin-bottom:4px;
+}
+.profile-email { font-size:14px; opacity:0.75; margin-bottom:10px; }
+.profile-badges { display:flex; gap:8px; }
+.profile-badge {
+    padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;
+    letter-spacing:0.5px; text-transform:uppercase;
+}
+.pb-role { background:rgba(255,255,255,0.2); color:#fff; }
+.pb-active { background:rgba(16,185,129,0.3); color:#6ee7b7; border:1px solid rgba(16,185,129,0.4); }
+.pb-pending { background:rgba(245,158,11,0.3); color:#fcd34d; }
+
+/* Info card */
+.info-card {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    overflow:hidden; margin-bottom:16px;
+    animation:fadeUp 0.5s ease 0.1s both;
+}
+.info-card-header {
+    padding:16px 20px; border-bottom:1px solid #f0f0f0;
+    display:flex; justify-content:space-between; align-items:center;
+}
+.info-card-title { font-size:15px; font-weight:700; color:#1a1a2e; }
+.btn-edit-profile {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 16px; border-radius:8px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff; text-decoration:none; font-size:12px; font-weight:600;
+    transition:all 0.2s; box-shadow:0 3px 10px rgba(99,102,241,0.3);
+}
+.btn-edit-profile:hover { opacity:0.9; transform:translateY(-1px); color:#fff; }
+
+.info-grid { padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.info-item { }
+.info-label {
+    font-size:11px; font-weight:600; letter-spacing:1px;
+    text-transform:uppercase; color:#aaa; margin-bottom:4px;
+}
+.info-value { font-size:14px; font-weight:500; color:#1a1a2e; }
+.info-value.empty { color:#ccc; font-style:italic; }
+
+/* Stats card */
+.stats-card {
+    background:#fff; border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    padding:20px; animation:fadeUp 0.5s ease 0.2s both;
+}
+.stats-title { font-size:15px; font-weight:700; color:#1a1a2e; margin-bottom:16px; }
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.stat-item {
+    background:#f8f9ff; border-radius:12px; padding:14px;
+    text-align:center; border:1.5px solid #e8eaf0;
+}
+.stat-num { font-size:24px; font-weight:700; color:#6366f1; }
+.stat-lbl { font-size:11px; color:#aaa; margin-top:3px; }
+</style>
+
+<div class="profile-wrap">
+    <!-- Hero -->
+    <div class="profile-hero">
+        <div class="profile-avatar">{{ user.name[0].upper() }}</div>
+        <div class="profile-hero-info">
+            <div class="profile-name">{{ user.name }}</div>
+            <div class="profile-email">{{ user.email }}</div>
+            <div class="profile-badges">
+                <span class="profile-badge pb-role">{{ user.role|capitalize }}</span>
+                <span class="profile-badge {% if user.status == 'active' %}pb-active{% else %}pb-pending{% endif %}">
+                    {{ user.status|capitalize }}
+                </span>
             </div>
-            <div class="card-body p-4">
-                <table class="table table-borderless">
-                    <tr><th style="width:140px">Name</th><td>{{ user.name }}</td></tr>
-                    <tr><th>Email</th><td>{{ user.email }}</td></tr>
-                    <tr><th>Phone</th><td>{{ user.phone or '—' }}</td></tr>
-                    <tr><th>Address</th><td>{{ user.address or '—' }}</td></tr>
-                    <tr><th>Role</th><td><span class="badge bg-primary">{{ user.role|capitalize }}</span></td></tr>
-                    <tr><th>Status</th><td><span class="badge bg-success">{{ user.status|capitalize }}</span></td></tr>
-                    <tr><th>Member Since</th><td>{{ user.created_at.strftime('%Y-%m-%d') }}</td></tr>
-                </table>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <div class="info-card-title">📋 Personal Information</div>
+            <a href="{{ url_for('auth.edit_profile') }}" class="btn-edit-profile">
+                ✏️ Edit Profile
+            </a>
+        </div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">{{ user.name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Email Address</div>
+                <div class="info-value">{{ user.email }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Phone Number</div>
+                <div class="info-value {% if not user.phone %}empty{% endif %}">
+                    {{ user.phone or 'Not provided' }}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Member Since</div>
+                <div class="info-value">{{ user.created_at.strftime('%B %d, %Y') }}</div>
+            </div>
+            <div class="info-item" style="grid-column:1/-1">
+                <div class="info-label">Address</div>
+                <div class="info-value {% if not user.address %}empty{% endif %}">
+                    {{ user.address or 'Not provided' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-card">
+        <div class="stats-title">📊 Account Statistics</div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-num">{{ user.loans|length }}</div>
+                <div class="stat-lbl">Total Loans</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">
+                    {{ user.loans|selectattr('status','equalto','borrowed')|list|length }}
+                </div>
+                <div class="stat-lbl">Active Loans</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">
+                    {{ user.loans|selectattr('status','equalto','returned')|list|length }}
+                </div>
+                <div class="stat-lbl">Returned</div>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
